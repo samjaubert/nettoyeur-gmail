@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Confidentialité – Nettoyeur Gmail</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --text:#1d2330; --muted:#667085; --line:#e4e7ec; --primary:#1a73e8; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#15181e; --card:#1e222a; --text:#e8eaed; --muted:#9aa0a6; --line:#2f3440; --primary:#8ab4f8; } }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width:760px; margin:0 auto; padding:40px 16px; }
+  h1 { font-size:28px; margin:0 0 8px; }
+  h2 { font-size:19px; margin-top:28px; }
+  .muted { color:var(--muted); }
+  a { color:var(--primary); }
+  li { margin:6px 0; }
+</style>
+</head>
+<body>
+<main>
+  <p><a href="index.html">← Nettoyeur Gmail</a></p>
+  <h1>Règles de confidentialité</h1>
+  <p class="muted">Dernière mise à jour : 7 novembre 2026</p>
+
+  <h2>Données consultées</h2>
+  <p>Avec votre autorisation, Nettoyeur Gmail accède à votre compte Gmail via l'API Gmail de Google pour :</p>
+  <ul>
+    <li>lire les <strong>en-têtes</strong> des e-mails (expéditeur, objet, date, en-têtes <code>List-Unsubscribe</code>) afin d'identifier vos abonnements. Le corps des e-mails n'est jamais lu ;</li>
+    <li>archiver ou mettre à la corbeille les e-mails d'un expéditeur, uniquement à votre demande ;</li>
+    <li>envoyer un e-mail de désabonnement à l'adresse fournie par un expéditeur, uniquement après votre confirmation.</li>
+  </ul>
+
+  <h2>Stockage et partage</h2>
+  <ul>
+    <li>Tout le traitement a lieu <strong>dans votre navigateur</strong>. Aucune donnée n'est envoyée à un serveur appartenant au développeur.</li>
+    <li>Seuls vos réglages (catégories corrigées, expéditeurs gardés, désabonnements effectués) et un jeton d'accès temporaire sont conservés, localement, dans le stockage de l'extension.</li>
+    <li>Les seules requêtes externes sont celles adressées à Google et les demandes de désabonnement envoyées aux expéditeurs que vous avez choisis.</li>
+    <li>Aucune donnée n'est vendue, partagée, ni utilisée à des fins publicitaires ou pour entraîner des modèles d'IA.</li>
+  </ul>
+
+  <h2>Conformité</h2>
+  <p>L'utilisation et le transfert des informations reçues des API Google respectent le
+    <a href="https://developers.google.com/terms/api-services-user-data-policy">Règlement sur les données utilisateur des services d'API Google</a>,
+    y compris les exigences d'utilisation limitée.</p>
+
+  <h2>Suppression</h2>
+  <p>Le bouton « Déconnecter » de l'extension révoque l'accès et efface les réglages du compte.
+    Vous pouvez aussi retirer l'accès à tout moment sur
+    <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>, ou désinstaller l'extension.</p>
+
+  <h2>Contact</h2>
+  <p>samson22389@gmail.com</p>
+</main>
+</body>
+</html>
