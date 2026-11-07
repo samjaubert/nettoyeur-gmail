@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nettoyeur Gmail</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --text:#1d2330; --muted:#667085; --line:#e4e7ec; --primary:#1a73e8; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#15181e; --card:#1e222a; --text:#e8eaed; --muted:#9aa0a6; --line:#2f3440; --primary:#8ab4f8; } }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width:760px; margin:0 auto; padding:40px 16px; }
+  h1 { font-size:32px; margin:0 0 8px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px 24px; margin:20px 0; }
+  .muted { color:var(--muted); }
+  a { color:var(--primary); }
+  li { margin:6px 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>🧹 Nettoyeur Gmail</h1>
+  <p class="muted">Une extension Chrome personnelle pour se désabonner en masse des newsletters et e-mails promotionnels.</p>
+
+  <div class="card">
+    <h2>Ce que fait l'application</h2>
+    <ul>
+      <li>Repère les expéditeurs qui proposent un lien de désabonnement dans votre boîte Gmail.</li>
+      <li>Les classe par catégorie (travail, mode, loisirs, voyages, shopping…).</li>
+      <li>Vous désabonne en masse des expéditeurs que vous avez choisis, <strong>uniquement après votre confirmation explicite</strong>.</li>
+      <li>En option, archive ou met à la corbeille les e-mails déjà reçus de ces expéditeurs.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Données Google utilisées</h2>
+    <ul>
+      <li><strong>Lecture des en-têtes d'e-mails</strong> (expéditeur, objet, date, lien de désabonnement), pour trouver vos abonnements. Le contenu des e-mails n'est pas lu.</li>
+      <li><strong>Modification des libellés</strong>, pour archiver ou mettre à la corbeille, uniquement si vous le demandez.</li>
+      <li><strong>Envoi d'e-mails</strong>, uniquement pour envoyer une demande de désabonnement à l'adresse prévue par un expéditeur que vous avez choisi.</li>
+    </ul>
+  </div>
+
+  <p><a href="privacy.html">Règles de confidentialité</a> · Contact : samson22389@gmail.com</p>
+</main>
+</body>
+</html>
