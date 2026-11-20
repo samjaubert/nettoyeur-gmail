@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- PWA:START -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Spirit 2">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#14254a">
+<style>:root{padding-top:env(safe-area-inset-top,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<!-- PWA:END -->
+<title>Mon Spirit 2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: iOS-style single column, navy valuation hero, cards below, fixed bottom tab bar. */
+:root {
+  --bg: #f2f4f8; --surface: #ffffff; --surface-2: #f7f8fb; --ink: #12203f; --muted: #5d6a85; --line: #e2e6ef;
+  --navy: #14254a; --navy-2: #1d3366; --on-navy: #ffffff; --on-navy-muted: #b8c3dd;
+  --coral: #f2664b; --coral-soft: #fde6e0; --pos: #1a8f62; --neg: #cf3e3e;
+  --c1: #2b4c9b; --c2: #f2664b; --c3: #2a9d93; --c4: #d99a2b; --c5: #7b5cc4; --c6: #5f8fd9; --c7: #c94f7c;
+  --display: "Manrope", -apple-system, "Segoe UI", system-ui, sans-serif;
+  --text: "Inter", -apple-system, "Segoe UI", system-ui, sans-serif;
+  --radius: 18px; --tabbar: 64px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0b1222; --surface: #141d33; --surface-2: #19243f; --ink: #e9edf6; --muted: #93a0bb; --line: #26345a;
+  --navy: #1a2c58; --navy-2: #233a70; --on-navy: #ffffff; --on-navy-muted: #b8c3dd;
+  --coral: #ff7d63; --coral-soft: #3a2230; --pos: #3cc48d; --neg: #ff7070;
+  --c1: #6e93ea; --c2: #ff7d63; --c3: #3cc2b5; --c4: #f0b54a; --c5: #a68af0; --c6: #8fb6f5; --c7: #ea7aa3;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0b1222; --surface: #141d33; --surface-2: #19243f; --ink: #e9edf6; --muted: #93a0bb; --line: #26345a;
+  --navy: #1a2c58; --navy-2: #233a70; --on-navy: #ffffff; --on-navy-muted: #b8c3dd;
+  --coral: #ff7d63; --coral-soft: #3a2230; --pos: #3cc48d; --neg: #ff7070;
+  --c1: #6e93ea; --c2: #ff7d63; --c3: #3cc2b5; --c4: #f0b54a; --c5: #a68af0; --c6: #8fb6f5; --c7: #ea7aa3;
+  color-scheme: dark; }
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { background: var(--bg); }
+body { margin: 0; color: var(--ink); font: 15px/1.45 var(--text); -webkit-font-smoothing: antialiased; }
+button, input, select, textarea { font: inherit; color: inherit; }
+.num { font-variant-numeric: tabular-nums; }
+.wrap { max-width: 640px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 8px calc(var(--tabbar) + env(safe-area-inset-bottom, 0px) + 28px); display: grid; gap: 16px; }
+
+/* Header */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 8px; }
+.top h1 { font: 800 28px/1.1 var(--display); letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
+.top .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+.icon-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; cursor: pointer; flex: none; }
+.icon-btn svg { width: 20px; height: 20px; stroke: var(--ink); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Hero */
+.hero { background: radial-gradient(120% 140% at 100% 0%, var(--navy-2) 0%, var(--navy) 60%); color: var(--on-navy); border-radius: 24px; padding: 22px 20px 18px; display: grid; gap: 14px; overflow: hidden; position: relative; }
+.hero .label { color: var(--on-navy-muted); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
+.hero .big { font: 800 38px/1.05 var(--display); letter-spacing: -0.02em; margin-top: 4px; }
+.hero .big small { font-size: 22px; font-weight: 700; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-weight: 600; font-size: 13px; }
+.hero .pill.pos { background: rgba(60, 196, 141, 0.18); color: #7fe0b5; }
+.hero .pill.neg { background: rgba(255, 112, 112, 0.18); color: #ffb0b0; }
+.hero-row { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
+.hero .asof { color: var(--on-navy-muted); font-size: 12px; }
+.hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; border-top: 1px solid rgba(255,255,255,0.12); padding-top: 14px; }
+.hero-stats div { min-width: 0; }
+.hero-stats dt { color: var(--on-navy-muted); font-size: 11.5px; }
+.hero-stats dd { margin: 2px 0 0; font: 700 15px/1.2 var(--display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Cards */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.card-h { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.card-h h2 { font: 700 17px/1.2 var(--display); margin: 0; letter-spacing: -0.01em; }
+.card-h .meta { color: var(--muted); font-size: 13px; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+
+.seg { display: inline-flex; background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; }
+.seg button { border: 0; background: transparent; padding: 5px 11px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(18, 32, 63, 0.12); }
+
+/* Chart */
+.chart { position: relative; height: 200px; touch-action: pan-y; }
+.chart svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.chart .tip { position: absolute; top: 0; transform: translateX(-50%); background: var(--ink); color: var(--bg); font-size: 12px; padding: 5px 8px; border-radius: 8px; pointer-events: none; white-space: nowrap; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; color: var(--muted); }
+.legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+
+/* KPI grid */
+.kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.kpi { background: var(--surface-2); border-radius: 14px; padding: 12px; min-width: 0; margin: 0; }
+.kpi dt { color: var(--muted); font-size: 12px; }
+.kpi dd { margin: 4px 0 0; font: 700 18px/1.2 var(--display); }
+.kpi .hint { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+
+/* Donut + lists */
+.alloc { display: grid; grid-template-columns: 150px 1fr; gap: 16px; align-items: center; }
+@media (max-width: 380px) { .alloc { grid-template-columns: 1fr; justify-items: center; } }
+.donut { width: 150px; height: 150px; position: relative; }
+.donut svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.donut .center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.donut .center b { font: 800 18px/1.1 var(--display); }
+.donut .center span { font-size: 11.5px; color: var(--muted); }
+.alloc ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; width: 100%; min-width: 0; }
+.alloc li { display: grid; grid-template-columns: 10px 1fr auto; gap: 8px; align-items: center; font-size: 13.5px; min-width: 0; }
+.alloc li span:nth-child(2) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dot { width: 10px; height: 10px; border-radius: 3px; }
+
+.list { display: grid; }
+.row { display: grid; grid-template-columns: 38px 1fr auto; gap: 12px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); background: none; border-left: 0; border-right: 0; border-bottom: 0; text-align: left; width: 100%; cursor: pointer; }
+.row:first-child { border-top: 0; padding-top: 2px; }
+.row .badge { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; font: 800 13px var(--display); }
+.row .t { min-width: 0; }
+.row .t b { display: block; font-weight: 600; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .t span { display: block; font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .v { text-align: right; }
+.row .v b { display: block; font: 700 15px/1.2 var(--display); }
+.row .v span { font-size: 12.5px; }
+.pos { color: var(--pos); } .neg { color: var(--neg); }
+.bar { height: 4px; background: var(--surface-2); border-radius: 4px; overflow: hidden; margin-top: 6px; }
+.bar i { display: block; height: 100%; border-radius: 4px; }
+
+.tag { display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 7px; border-radius: 6px; background: var(--surface-2); color: var(--muted); vertical-align: 1px; }
+
+details.year { border-top: 1px solid var(--line); }
+details.year:first-of-type { border-top: 0; }
+details.year > summary { list-style: none; display: flex; justify-content: space-between; align-items: baseline; padding: 12px 0; cursor: pointer; font: 700 16px var(--display); }
+details.year > summary::-webkit-details-marker { display: none; }
+details.year > summary span { font: 500 13px var(--text); color: var(--muted); }
+details.year > summary::after { content: ""; }
+.chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 13px; font-size: 13px; font-weight: 600; color: var(--muted); white-space: nowrap; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: var(--on-navy); }
+
+dl.info { margin: 0; display: grid; }
+dl.info div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-top: 1px solid var(--line); }
+dl.info div:first-child { border-top: 0; padding-top: 0; }
+dl.info dt { color: var(--muted); }
+dl.info dd { margin: 0; font-weight: 600; text-align: right; min-width: 0; overflow-wrap: anywhere; }
+
+.progress { height: 10px; border-radius: 10px; background: var(--surface-2); overflow: hidden; }
+.progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--navy-2), var(--coral)); border-radius: 10px; }
+
+.btn { border: 0; border-radius: 14px; padding: 13px 16px; font-weight: 600; cursor: pointer; background: var(--surface-2); color: var(--ink); text-align: center; }
+.btn.primary { background: var(--coral); color: #fff; }
+.btn.navy { background: var(--navy); color: var(--on-navy); }
+.btn.danger { background: transparent; color: var(--neg); border: 1px solid var(--line); }
+.btn.danger.armed { background: var(--neg); color: #fff; border-color: var(--neg); }
+.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.link-btn { border: 0; background: none; color: var(--coral); font-weight: 600; cursor: pointer; padding: 0; font-size: 14px; }
+:focus-visible { outline: 2px solid var(--coral); outline-offset: 2px; }
+
+.banner { display: flex; gap: 12px; align-items: center; justify-content: space-between; background: var(--coral-soft); border-radius: 14px; padding: 12px 14px; font-size: 13.5px; }
+.banner b { font-weight: 600; }
+.empty { text-align: center; padding: 20px 8px; color: var(--muted); display: grid; gap: 10px; justify-items: center; }
+
+/* Tab bar */
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: color-mix(in srgb, var(--surface) 88%, transparent); -webkit-backdrop-filter: saturate(180%) blur(18px); backdrop-filter: saturate(180%) blur(18px); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+.tabbar nav { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); height: var(--tabbar); }
+.tabbar button { border: 0; background: none; display: grid; justify-items: center; align-content: center; gap: 3px; font-size: 11px; font-weight: 600; color: var(--muted); cursor: pointer; }
+.tabbar svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.tabbar button[aria-current="page"] { color: var(--coral); }
+
+/* Sheet */
+.scrim { position: fixed; inset: 0; background: rgba(8, 14, 30, 0.45); z-index: 40; opacity: 0; transition: opacity .2s; }
+.scrim.open { opacity: 1; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; max-height: calc(100% - env(safe-area-inset-top, 0px) - 24px); background: var(--bg); border-radius: 22px 22px 0 0; display: flex; flex-direction: column; transform: translateY(100%); transition: transform .28s cubic-bezier(.2,.8,.2,1); max-width: 640px; margin: 0 auto; }
+.sheet.open { transform: none; }
+.sheet-h { display: flex; justify-content: space-between; align-items: center; padding: 14px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); border-bottom: 1px solid var(--line); }
+.sheet-h h3 { margin: 0; font: 700 17px var(--display); }
+.sheet-b { overflow-y: auto; padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 14px; }
+.field { display: grid; gap: 6px; }
+.field label { font-size: 13px; color: var(--muted); font-weight: 500; }
+.field input, .field select, .field textarea { width: 100%; padding: 12px 13px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-size: 16px; }
+.field textarea { min-height: 140px; font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.qrow { display: grid; grid-template-columns: 1fr 120px; gap: 10px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+.qrow:first-child { border-top: 0; }
+.qrow b { display: block; font-size: 14px; font-weight: 600; }
+.qrow span { font-size: 12px; color: var(--muted); }
+.qrow input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); text-align: right; font-size: 16px; }
+
+.toast { position: fixed; left: 50%; bottom: calc(var(--tabbar) + env(safe-area-inset-bottom, 0px) + 14px); transform: translate(-50%, 20px); opacity: 0; background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-weight: 600; font-size: 14px; z-index: 60; transition: .25s; pointer-events: none; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.foot { text-align: center; font-size: 12px; color: var(--muted); padding: 4px 12px; }
+@media (prefers-reduced-motion: reduce) { .sheet, .scrim, .toast { transition: none; } }
+</style>
+</head>
+<body>
+<main class="wrap" id="app"></main>
+
+<div class="tabbar"><nav aria-label="Navigation">
+  <button data-tab="synthese"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 3 8-8"/><path d="M15 7h5v5"/></svg>Synthèse</button>
+  <button data-tab="supports"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5V12l6 6"/></svg>Supports</button>
+  <button data-tab="operations"><svg viewBox="0 0 24 24"><path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/></svg>Opérations</button>
+  <button data-tab="contrat"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>Contrat</button>
+</nav></div>
+
+<div class="scrim" id="scrim" hidden></div>
+<section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
+  <div class="sheet-h"><h3 id="sheet-title"></h3><button class="link-btn" id="sheet-close">Fermer</button></div>
+  <div class="sheet-b" id="sheet-body"></div>
+</section>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+"use strict";
+const KEY = "spirit2.data.v1", TABKEY = "spirit2.tab";
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const eur = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
+const eur0 = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+const nf = (d = 2) => new Intl.NumberFormat("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d });
+const pct = (x, d = 2) => (x > 0 ? "+" : "") + nf(d).format(x * 100) + " %";
+const signed = x => (x > 0 ? "+" : x < 0 ? "−" : "") + eur.format(Math.abs(x));
+const iso = d => d.toISOString().slice(0, 10);
+const today = () => iso(new Date());
+const parseD = s => new Date(s + "T12:00:00");
+const fmtD = s => parseD(s).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+const uid = () => Math.random().toString(36).slice(2, 10);
+const num = v => { const n = parseFloat(String(v).replace(/\s/g, "").replace(",", ".")); return isFinite(n) ? n : 0; };
+const TYPES = { euro: "Fonds euros", uc: "Unité de compte", scpi: "SCPI / immobilier" };
+const OPS = {
+  versement: { label: "Versement", badge: "+", color: "var(--pos)" },
+  rachat: { label: "Rachat", badge: "−", color: "var(--neg)" },
+  arbitrage: { label: "Arbitrage", badge: "⇄", color: "var(--c1)" },
+  interets: { label: "Intérêts", badge: "%", color: "var(--c4)" },
+  frais: { label: "Frais", badge: "€", color: "var(--muted)" }
+};
+const PALETTE = ["--c1", "--c2", "--c3", "--c4", "--c5", "--c6", "--c7"];
+
+/* ---------- Data ---------- */
+function demoData() {
+  const open = "2021-03-15";
+  const ops = [{ id: uid(), date: open, type: "versement", amount: 10000, label: "Versement initial" }];
+  const now = new Date();
+  for (let d = new Date(2021, 3, 5); d <= now; d.setMonth(d.getMonth() + 1))
+    ops.push({ id: uid(), date: iso(new Date(d.getFullYear(), d.getMonth(), 5, 12)), type: "versement", amount: 300, label: "Versement programmé" });
+  ops.push({ id: uid(), date: "2023-06-12", type: "arbitrage", amount: 3000, label: "Fonds euros → Amundi MSCI World" });
+  ops.push({ id: uid(), date: "2024-11-04", type: "arbitrage", amount: 1500, label: "Amundi S&P 500 → Amundi MSCI Emerging" });
+  [[2021, 92.4], [2022, 168.1], [2023, 251.7], [2024, 298.3], [2025, 321.9]].forEach(([y, a]) =>
+    ops.push({ id: uid(), date: `${y}-12-31`, type: "interets", amount: a, label: "Participation aux bénéfices" }));
+  const supports = [
+    { id: uid(), name: "Fonds Euro Nouvelle Génération", isin: "Fonds euros Spirica", type: "euro", amount: 8420.35 },
+    { id: uid(), name: "Amundi MSCI World UCITS ETF", isin: "LU1681043599", type: "uc", units: 34.218, nav: 589.40, pru: 452.10 },
+    { id: uid(), name: "Amundi S&P 500 UCITS ETF", isin: "LU1681048804", type: "uc", units: 82.5, nav: 118.76, pru: 88.40 },
+    { id: uid(), name: "Amundi MSCI Emerging Markets", isin: "LU1681045370", type: "uc", units: 640, nav: 5.48, pru: 4.95 }
+  ];
+  const data = { demo: true, contract: {
+    name: "Linxea Spirit 2", number: "SP2-00000000", holder: "Exemple", insurer: "Spirica", openDate: open,
+    mode: "Gestion libre", feesUC: "0,50 %/an", feesEuro: "0,60 %/an", feesEntry: "0 %", beneficiary: "Clause standard"
+  }, supports, operations: ops, history: [] };
+  // monthly valuation history (illustrative)
+  const total = supports.reduce((s, x) => s + value(x), 0);
+  const start = parseD(open), months = [];
+  for (let d = new Date(start.getFullYear(), start.getMonth() + 1, 0, 12); d < now; d = new Date(d.getFullYear(), d.getMonth() + 2, 0, 12)) months.push(new Date(d));
+  const finalRatio = total / investedAt(ops, today());
+  months.forEach((d, i) => {
+    const t = i / months.length;
+    const g = (finalRatio - 1) * Math.pow(t, 1.15) + 0.035 * Math.sin(i * 0.9) - 0.09 * Math.exp(-Math.pow((i - 18) / 4.5, 2)) + 0.02 * Math.sin(i * 2.3);
+    data.history.push({ date: iso(d), value: Math.round(investedAt(ops, iso(d)) * (1 + g) * 100) / 100 });
+  });
+  return data;
+}
+function emptyData() {
+  return { demo: false, contract: { name: "Linxea Spirit 2", number: "", holder: "", insurer: "Spirica", openDate: today(), mode: "Gestion libre", feesUC: "0,50 %/an", feesEuro: "", feesEntry: "0 %", beneficiary: "" }, supports: [], operations: [], history: [] };
+}
+function load() { try { const s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+let state = load() || demoData();
+let tab = (() => { try { return localStorage.getItem(TABKEY) || "synthese"; } catch (e) { return "synthese"; } })();
+let ui = { period: "all", allocBy: "support", opFilter: "all" };
+
+/* ---------- Calculations ---------- */
+function value(s) { return s.type === "uc" || (s.units && s.nav) ? num(s.units) * num(s.nav) : num(s.amount); }
+function cost(s) { return s.type === "uc" && s.pru ? num(s.units) * num(s.pru) : null; }
+function total() { return state.supports.reduce((a, s) => a + value(s), 0); }
+function investedAt(ops, date) {
+  return ops.reduce((a, o) => o.date <= date ? a + (o.type === "versement" ? num(o.amount) : o.type === "rachat" ? -num(o.amount) : 0) : a, 0);
+}
+function sumType(t) { return state.operations.filter(o => o.type === t).reduce((a, o) => a + num(o.amount), 0); }
+function xirr(flows) {
+  if (flows.length < 2) return null;
+  const t0 = flows[0].d.getTime();
+  const f = r => flows.reduce((a, c) => a + c.v / Math.pow(1 + r, (c.d - t0) / 31557600000), 0);
+  let lo = -0.99, hi = 2, flo = f(lo), fhi = f(hi);
+  if (flo * fhi > 0) return null;
+  for (let i = 0; i < 120; i++) { const m = (lo + hi) / 2, fm = f(m); if (flo * fm <= 0) { hi = m; fhi = fm; } else { lo = m; flo = fm; } }
+  return (lo + hi) / 2;
+}
+function metrics() {
+  const v = total(), inv = investedAt(state.operations, "9999-12-31");
+  const flows = state.operations.filter(o => o.type === "versement" || o.type === "rachat")
+    .map(o => ({ d: parseD(o.date), v: o.type === "versement" ? -num(o.amount) : num(o.amount) }))
+    .sort((a, b) => a.d - b.d);
+  if (v > 0) flows.push({ d: new Date(), v });
+  const lastSnap = state.history.length ? state.history[state.history.length - 1].date : null;
+  return { v, inv, pv: v - inv, perf: inv > 0 ? (v - inv) / inv : 0, irr: xirr(flows), lastSnap };
+}
+function series() {
+  const pts = state.history.map(h => ({ d: h.date, v: num(h.value) })).sort((a, b) => a.d < b.d ? -1 : 1);
+  const v = total();
+  if (v > 0 && (!pts.length || pts[pts.length - 1].d < today())) pts.push({ d: today(), v });
+  return pts.map(p => ({ ...p, inv: investedAt(state.operations, p.d) }));
+}
+
+/* ---------- Render ---------- */
+function render() {
+  document.querySelectorAll(".tabbar button").forEach(b => b.setAttribute("aria-current", b.dataset.tab === tab ? "page" : "false"));
+  const app = $("#app");
+  app.innerHTML = ({ synthese: vSynthese, supports: vSupports, operations: vOperations, contrat: vContrat }[tab] || vSynthese)();
+  if (tab === "synthese") drawChart();
+  window.scrollTo(0, 0);
+}
+function header(title, sub, action = true) {
+  return `<header class="top"><div><h1>${esc(title)}</h1><div class="sub">${sub}</div></div>
+    ${action ? `<button class="icon-btn" data-act="quick" aria-label="Mettre à jour les valeurs"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>` : ""}</header>`;
+}
+function demoBanner() {
+  return state.demo ? `<div class="banner"><span><b>Données d'exemple.</b> Remplacez-les par celles de votre espace client.</span><button class="link-btn" data-act="start">Commencer</button></div>` : "";
+}
+function vSynthese() {
+  const m = metrics(), c = state.contract;
+  const cls = m.pv >= 0 ? "pos" : "neg";
+  const euro = state.supports.filter(s => s.type === "euro").reduce((a, s) => a + value(s), 0);
+  const age = yearsSince(c.openDate);
+  return `${header(c.name || "Mon contrat", `${esc(c.insurer || "")}${c.number ? " · n° " + esc(c.number) : ""}`)}
+  ${demoBanner()}
+  <section class="hero">
+    <div><div class="label">Valorisation</div><div class="big num">${bigEur(m.v)}</div></div>
+    <div class="hero-row"><span class="pill ${cls} num">${signed(m.pv)} · ${pct(m.perf)}</span><span class="asof">au ${fmtD(today())}</span></div>
+    <dl class="hero-stats">
+      <div><dt>Versements nets</dt><dd class="num">${eur0.format(m.inv)}</dd></div>
+      <div><dt>Rendement annuel</dt><dd class="num">${m.irr == null ? "—" : pct(m.irr, 1)}</dd></div>
+      <div><dt>Fonds euros</dt><dd class="num">${m.v ? nf(0).format(euro / m.v * 100) + " %" : "—"}</dd></div>
+    </dl>
+  </section>
+  <section class="card">
+    <div class="card-h"><h2>Évolution</h2>
+      <div class="seg" role="group" aria-label="Période">${[["1y", "1 an"], ["3y", "3 ans"], ["all", "Tout"]].map(([k, l]) => `<button data-period="${k}" aria-pressed="${ui.period === k}">${l}</button>`).join("")}</div></div>
+    <div class="chart" id="chart"></div>
+    <div class="legend"><span><i style="background:var(--coral)"></i>Valorisation</span><span><i style="background:var(--muted)"></i>Versements cumulés</span></div>
+  </section>
+  <section class="card">
+    <div class="card-h"><h2>Répartition</h2><button class="link-btn" data-goto="supports">Détail</button></div>
+    ${allocBlock()}
+  </section>
+  <section class="kpis">
+    <dl class="kpi"><dt>Plus-value latente</dt><dd class="num ${cls}">${signed(m.pv)}</dd><div class="hint">Valeur − versements nets</div></dl>
+    <dl class="kpi"><dt>Intérêts fonds euros</dt><dd class="num">${eur0.format(sumType("interets"))}</dd><div class="hint">Cumul depuis l'ouverture</div></dl>
+    <dl class="kpi"><dt>Ancienneté</dt><dd class="num">${age.label}</dd><div class="hint">${age.y >= 8 ? "Fiscalité après 8 ans" : "8 ans le " + fmtD(addYears(c.openDate, 8))}</div></dl>
+    <dl class="kpi"><dt>Dernière mise à jour</dt><dd class="num">${m.lastSnap ? fmtD(m.lastSnap) : "—"}</dd><div class="hint"><button class="link-btn small" data-act="quick">Mettre à jour</button></div></dl>
+  </section>
+  <p class="foot">Application personnelle, non officielle et sans lien avec Linxea ou Spirica.<br>Vos données restent sur cet appareil.</p>`;
+}
+function bigEur(v) { const [i, d] = nf(2).format(v).split(","); return `${i}<small>,${d} €</small>`; }
+function allocGroups() {
+  const v = total() || 1;
+  let groups;
+  if (ui.allocBy === "classe") {
+    const map = {};
+    state.supports.forEach(s => { map[s.type] = (map[s.type] || 0) + value(s); });
+    groups = Object.entries(map).map(([k, x]) => ({ name: TYPES[k] || k, v: x }));
+  } else groups = state.supports.map(s => ({ name: s.name, v: value(s) }));
+  return groups.sort((a, b) => b.v - a.v).map((g, i) => ({ ...g, w: g.v / v, color: `var(${PALETTE[i % PALETTE.length]})` }));
+}
+function allocBlock() {
+  if (!state.supports.length) return `<div class="empty">Aucun support pour l'instant.<button class="btn navy" data-act="add-support">Ajouter un support</button></div>`;
+  const g = allocGroups(), r = 52, C = 2 * Math.PI * r; let off = 0;
+  const arcs = g.map(x => { const len = Math.max(0, x.w * C - 2); const a = `<circle cx="70" cy="70" r="${r}" fill="none" stroke="${x.color}" stroke-width="18" stroke-dasharray="${len} ${C - len}" stroke-dashoffset="${-off}"/>`; off += x.w * C; return a; }).join("");
+  return `<div class="seg" role="group" aria-label="Regrouper par" style="justify-self:start">
+      <button data-alloc="support" aria-pressed="${ui.allocBy === "support"}">Par support</button><button data-alloc="classe" aria-pressed="${ui.allocBy === "classe"}">Par classe</button></div>
+    <div class="alloc"><div class="donut"><svg viewBox="0 0 140 140"><circle cx="70" cy="70" r="${r}" fill="none" stroke="var(--surface-2)" stroke-width="18"/>${arcs}</svg>
+      <div class="center"><b class="num">${g.length}</b><span>${ui.allocBy === "classe" ? "classes" : "supports"}</span></div></div>
+    <ul>${g.map(x => `<li><i class="dot" style="background:${x.color}"></i><span>${esc(x.name)}</span><b class="num">${nf(1).format(x.w * 100)} %</b></li>`).join("")}</ul></div>`;
+}
+function vSupports() {
+  const v = total();
+  const rows = state.supports.slice().sort((a, b) => value(b) - value(a)).map((s, i) => {
+    const val = value(s), c = cost(s), pv = c != null ? val - c : null;
+    const color = `var(${PALETTE[i % PALETTE.length]})`;
+    return `<button class="row" data-support="${s.id}">
+      <span class="badge" style="background:color-mix(in srgb, ${color} 16%, transparent);color:${color}">${s.type === "euro" ? "€" : s.type === "scpi" ? "IM" : "UC"}</span>
+      <span class="t"><b>${esc(s.name)}</b><span>${s.type === "uc" ? `${nf(3).format(num(s.units))} parts · VL ${eur.format(num(s.nav))}` : esc(s.isin || TYPES[s.type])}</span>
+        <span class="bar"><i style="width:${v ? val / v * 100 : 0}%;background:${color}"></i></span></span>
+      <span class="v"><b class="num">${eur.format(val)}</b>${pv != null ? `<span class="num ${pv >= 0 ? "pos" : "neg"}">${pct(pv / c, 1)}</span>` : `<span class="muted num">${nf(1).format(v ? val / v * 100 : 0)} %</span>`}</span>
+    </button>`;
+  }).join("");
+  return `${header("Supports", `${state.supports.length} support${state.supports.length > 1 ? "s" : ""} · ${eur.format(v)}`)}
+  ${demoBanner()}
+  <section class="card"><div class="card-h"><h2>Répartition</h2></div>${allocBlock()}</section>
+  <section class="card"><div class="card-h"><h2>Détail des supports</h2><button class="link-btn" data-act="add-support">Ajouter</button></div>
+    <div class="list">${rows || `<div class="empty">Ajoutez vos supports tels qu'ils apparaissent dans l'onglet « Répartition » de votre espace client.</div>`}</div>
+    <p class="small muted" style="margin:0">Performance d'une UC calculée sur le prix de revient unitaire (PRU) saisi.</p></section>`;
+}
+function vOperations() {
+  const f = ui.opFilter;
+  const ops = state.operations.filter(o => f === "all" || o.type === f).sort((a, b) => a.date < b.date ? 1 : -1);
+  const years = {};
+  ops.forEach(o => (years[o.date.slice(0, 4)] ||= []).push(o));
+  const cy = Object.keys(years).sort().reverse();
+  const body = cy.map((y, i) => {
+    const vers = years[y].filter(o => o.type === "versement").reduce((a, o) => a + num(o.amount), 0);
+    return `<details class="year" ${i === 0 ? "open" : ""}><summary>${y}<span>${years[y].length} opération${years[y].length > 1 ? "s" : ""}${vers ? " · " + eur0.format(vers) + " versés" : ""}</span></summary>
+      <div class="list">${years[y].map(opRow).join("")}</div></details>`;
+  }).join("");
+  const chip = (k, l) => `<button class="chip" data-opf="${k}" aria-pressed="${f === k}">${l}</button>`;
+  return `${header("Opérations", `${eur0.format(sumType("versement"))} versés · ${eur0.format(sumType("rachat"))} rachetés`, false)}
+  ${demoBanner()}
+  <div class="chips">${chip("all", "Toutes")}${chip("versement", "Versements")}${chip("arbitrage", "Arbitrages")}${chip("rachat", "Rachats")}${chip("interets", "Intérêts")}${chip("frais", "Frais")}</div>
+  <section class="card"><div class="card-h"><h2>Historique</h2><button class="link-btn" data-act="add-op">Ajouter</button></div>
+    ${body || `<div class="empty">Aucune opération. Ajoutez votre versement initial pour calculer la performance.</div>`}</section>`;
+}
+function opRow(o) {
+  const t = OPS[o.type] || OPS.versement;
+  const sign = o.type === "versement" || o.type === "interets" ? "+" : o.type === "arbitrage" ? "" : "−";
+  const cls = sign === "+" ? "pos" : sign === "−" ? "neg" : "";
+  return `<button class="row" data-op="${o.id}">
+    <span class="badge" style="background:color-mix(in srgb, ${t.color} 15%, transparent);color:${t.color}">${t.badge}</span>
+    <span class="t"><b>${esc(o.label || t.label)}</b><span>${t.label} · ${fmtD(o.date)}</span></span>
+    <span class="v"><b class="num ${cls}">${sign}${eur.format(num(o.amount))}</b></span></button>`;
+}
+function vContrat() {
+  const c = state.contract, m = metrics(), age = yearsSince(c.openDate);
+  const eight = addYears(c.openDate, 8), prog = Math.min(1, age.y / 8);
+  const gainShare = m.v > 0 ? Math.max(0, m.pv) / m.v : 0;
+  const info = [["Contrat", c.name], ["Numéro", c.number], ["Souscripteur", c.holder], ["Assureur", c.insurer], ["Date d'effet", c.openDate ? fmtD(c.openDate) : ""], ["Mode de gestion", c.mode], ["Frais sur versement", c.feesEntry], ["Frais de gestion UC", c.feesUC], ["Frais de gestion fonds euros", c.feesEuro], ["Clause bénéficiaire", c.beneficiary]];
+  return `${header("Contrat", esc(c.name || ""), false)}
+  ${demoBanner()}
+  <section class="card"><div class="card-h"><h2>Caractéristiques</h2><button class="link-btn" data-act="edit-contract">Modifier</button></div>
+    <dl class="info">${info.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v) || "—"}</dd></div>`).join("")}</dl></section>
+  <section class="card"><div class="card-h"><h2>Fiscalité</h2><span class="meta num">${age.label}</span></div>
+    <div class="progress" aria-label="Progression vers 8 ans"><i style="width:${prog * 100}%"></i></div>
+    <p class="small" style="margin:0">${age.y >= 8 ? `Votre contrat a passé le cap des 8 ans depuis le ${fmtD(eight)}. Les gains rachetés bénéficient d'un abattement annuel de 4 600 € (9 200 € pour un couple).` : `Le contrat aura 8 ans le <b>${fmtD(eight)}</b>. À partir de cette date, les gains rachetés bénéficient d'un abattement annuel de 4 600 € (9 200 € pour un couple).`}</p>
+    <div class="kpis">
+      <dl class="kpi"><dt>Part de gains par rachat</dt><dd class="num">${nf(1).format(gainShare * 100)} %</dd><div class="hint">Le reste est du capital versé</div></dl>
+      <dl class="kpi"><dt>Plus-value totale</dt><dd class="num ${m.pv >= 0 ? "pos" : "neg"}">${signed(m.pv)}</dd><div class="hint">Avant prélèvements sociaux</div></dl>
+    </div>
+    <div class="field"><label for="sim">Simuler un rachat partiel (€)</label><input id="sim" inputmode="decimal" placeholder="ex. 5 000"></div>
+    <p class="small muted" id="sim-out" style="margin:0">Saisissez un montant pour voir la part de gains imposable.</p></section>
+  <section class="card"><div class="card-h"><h2>Données</h2></div>
+    <button class="btn primary" data-act="quick">Mettre à jour les valeurs</button>
+    <div class="btn-row"><button class="btn" data-act="export">Exporter</button><button class="btn" data-act="import">Importer</button></div>
+    <div class="btn-row"><button class="btn" data-act="add-snap">Historique</button><button class="btn" data-act="demo">Recharger l'exemple</button></div>
+    <button class="btn danger" data-act="wipe">Effacer toutes les données</button>
+    <p class="small muted" style="margin:0">Les données sont enregistrées dans ce navigateur uniquement. Exportez-les de temps en temps pour garder une sauvegarde.</p></section>
+  <p class="foot">Application personnelle, non officielle et sans lien avec Linxea ou Spirica.</p>`;
+}
+function yearsSince(s) {
+  if (!s) return { y: 0, label: "—" };
+  const a = parseD(s), b = new Date();
+  let mo = (b.getFullYear() - a.getFullYear()) * 12 + b.getMonth() - a.getMonth(); if (b.getDate() < a.getDate()) mo--;
+  mo = Math.max(0, mo);
+  const y = Math.floor(mo / 12), r = mo % 12;
+  return { y: mo / 12, label: `${y} an${y > 1 ? "s" : ""}${r ? " " + r + " mois" : ""}` };
+}
+function addYears(s, n) { if (!s) return today(); const d = parseD(s); d.setFullYear(d.getFullYear() + n); return iso(d); }
+
+/* ---------- Chart ---------- */
+function drawChart() {
+  const el = $("#chart"); if (!el) return;
+  let pts = series();
+  if (ui.period !== "all") { const lim = iso(new Date(Date.now() - (ui.period === "1y" ? 1 : 3) * 31557600000)); pts = pts.filter(p => p.d >= lim); }
+  if (pts.length < 2) { el.innerHTML = `<div class="empty">L'historique se construit à chaque mise à jour des valeurs.</div>`; return; }
+  const W = el.clientWidth, H = el.clientHeight, padL = 4, padR = 44, padT = 26, padB = 22;
+  const t0 = parseD(pts[0].d).getTime(), t1 = parseD(pts[pts.length - 1].d).getTime();
+  const all = pts.flatMap(p => [p.v, p.inv]);
+  let lo = Math.min(...all), hi = Math.max(...all);
+  const step = niceStep((hi - lo) / 3 || hi / 3 || 1);
+  lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step; if (hi === lo) hi = lo + step;
+  const x = d => padL + (parseD(d).getTime() - t0) / (t1 - t0 || 1) * (W - padL - padR);
+  const y = v => padT + (1 - (v - lo) / (hi - lo)) * (H - padT - padB);
+  const line = k => pts.map((p, i) => `${i ? "L" : "M"}${x(p.d).toFixed(1)},${y(p[k]).toFixed(1)}`).join("");
+  const invPath = pts.map((p, i) => i ? `H${x(p.d).toFixed(1)}V${y(p.inv).toFixed(1)}` : `M${x(p.d).toFixed(1)},${y(p.inv).toFixed(1)}`).join("");
+  let grid = "";
+  for (let v = lo; v <= hi + 1e-6; v += step) grid += `<line x1="${padL}" x2="${W - padR}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-dasharray="${v === lo ? "" : "3 4"}"/><text x="${W - padR + 6}" y="${y(v) + 4}" font-size="11" fill="var(--muted)">${kfmt(v)}</text>`;
+  const y0 = new Date(t0).getFullYear(), y1 = new Date(t1).getFullYear();
+  const every = Math.max(1, Math.ceil((y1 - y0 + 1) / 5));
+  let xt = "";
+  for (let yr = y0 + 1; yr <= y1; yr += every) { const xx = x(`${yr}-01-01`); if (xx > padL + 14 && xx < W - padR - 14) xt += `<text x="${xx}" y="${H - 4}" font-size="11" text-anchor="middle" fill="var(--muted)">${yr}</text><line x1="${xx}" x2="${xx}" y1="${H - padB}" y2="${H - padB + 4}" stroke="var(--line)"/>`; }
+  if (y0 === y1 || !xt) { xt = `<text x="${padL}" y="${H - 4}" font-size="11" fill="var(--muted)">${fmtD(pts[0].d)}</text><text x="${W - padR}" y="${H - 4}" font-size="11" text-anchor="end" fill="var(--muted)">${fmtD(pts[pts.length - 1].d)}</text>`; }
+  const last = pts[pts.length - 1];
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Évolution de la valorisation">
+    <defs><linearGradient id="fillG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--coral)" stop-opacity=".28"/><stop offset="1" stop-color="var(--coral)" stop-opacity="0"/></linearGradient></defs>
+    ${grid}${xt}
+    <path d="${line("v")}L${x(last.d)},${y(lo)}L${x(pts[0].d)},${y(lo)}Z" fill="url(#fillG)"/>
+    <path d="${invPath}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <path d="${line("v")}" fill="none" stroke="var(--coral)" stroke-width="2.4" stroke-linejoin="round"/>
+    <circle cx="${x(last.d)}" cy="${y(last.v)}" r="4.5" fill="var(--coral)" stroke="var(--surface)" stroke-width="2"/>
+    <g id="cur" visibility="hidden"><line id="cur-l" y1="${padT - 6}" y2="${H - padB}" stroke="var(--ink)" stroke-opacity=".35"/><circle id="cur-c" r="5" fill="var(--coral)" stroke="var(--surface)" stroke-width="2"/></g>
+  </svg><div class="tip" id="tip" hidden></div>`;
+  const tip = $("#tip", el), cur = $("#cur", el);
+  const move = e => {
+    const r = el.getBoundingClientRect(), px = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+    let best = 0, bd = Infinity; pts.forEach((p, i) => { const dd = Math.abs(x(p.d) - px); if (dd < bd) { bd = dd; best = i; } });
+    const p = pts[best], cx = x(p.d);
+    cur.setAttribute("visibility", "visible"); $("#cur-l", el).setAttribute("x1", cx); $("#cur-l", el).setAttribute("x2", cx);
+    $("#cur-c", el).setAttribute("cx", cx); $("#cur-c", el).setAttribute("cy", y(p.v));
+    tip.hidden = false; tip.innerHTML = `${fmtD(p.d)} · <b>${eur0.format(p.v)}</b> <span style="opacity:.7">(${pct(p.inv ? (p.v - p.inv) / p.inv : 0, 1)})</span>`;
+    const tw = tip.offsetWidth; tip.style.left = Math.min(Math.max(cx, tw / 2), W - tw / 2) + "px";
+  };
+  const leave = () => { tip.hidden = true; cur.setAttribute("visibility", "hidden"); };
+  el.onpointermove = move; el.onpointerdown = move; el.onpointerleave = leave; el.ontouchend = leave;
+}
+function niceStep(raw) { const p = Math.pow(10, Math.floor(Math.log10(raw))), n = raw / p; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p; }
+function kfmt(v) { return Math.abs(v) >= 1000 ? nf(v % 1000 ? 1 : 0).format(v / 1000) + " k€" : nf(0).format(v) + " €"; }
+
+/* ---------- Sheets ---------- */
+function openSheet(title, html, mount) {
+  $("#sheet-title").textContent = title; $("#sheet-body").innerHTML = html;
+  const sc = $("#scrim"), sh = $("#sheet"); sc.hidden = false; sh.hidden = false;
+  requestAnimationFrame(() => { sc.classList.add("open"); sh.classList.add("open"); });
+  mount && mount($("#sheet-body"));
+}
+function closeSheet() {
+  const sc = $("#scrim"), sh = $("#sheet"); sc.classList.remove("open"); sh.classList.remove("open");
+  setTimeout(() => { sc.hidden = true; sh.hidden = true; $("#sheet-body").innerHTML = ""; }, 260);
+}
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2200); }
+function commit(msg) { save(); render(); msg && toast(msg); }
+function snapshot() {
+  const v = Math.round(total() * 100) / 100, d = today();
+  state.history = state.history.filter(h => h.date !== d); state.history.push({ date: d, value: v });
+  state.history.sort((a, b) => a.date < b.date ? -1 : 1);
+}
+const field = (id, label, val = "", attrs = "") => `<div class="field"><label for="${id}">${label}</label><input id="${id}" value="${esc(val)}" ${attrs}></div>`;
+function armed(btn, fn) { btn.addEventListener("click", () => { if (btn.classList.contains("armed")) fn(); else { btn.classList.add("armed"); btn.dataset.l = btn.textContent; btn.textContent = "Confirmer"; setTimeout(() => { btn.classList.remove("armed"); btn.textContent = btn.dataset.l; }, 3500); } }); }
+
+function sheetQuick() {
+  if (!state.supports.length) return sheetSupport();
+  openSheet("Mettre à jour les valeurs", `
+    <p class="small muted" style="margin:0">Recopiez les valeurs affichées dans votre espace client Linxea. La valorisation du jour est ajoutée à l'historique.</p>
+    <div>${state.supports.map(s => `<div class="qrow"><div><b>${esc(s.name)}</b><span>${s.type === "uc" ? `VL actuelle · ${nf(3).format(num(s.units))} parts` : "Montant (€)"}</span></div>
+      <input id="q-${s.id}" inputmode="decimal" value="${esc(String(s.type === "uc" ? num(s.nav) : num(s.amount)).replace(".", ","))}" aria-label="${esc(s.name)}"></div>`).join("")}</div>
+    <div class="field"><label for="q-int">Intérêts fonds euros crédités (optionnel)</label><input id="q-int" inputmode="decimal" placeholder="0"></div>
+    <button class="btn primary" id="q-save">Enregistrer</button>`, b => {
+    $("#q-save", b).onclick = () => {
+      state.supports.forEach(s => { const v = num($("#q-" + s.id, b).value); if (s.type === "uc") s.nav = v; else s.amount = v; });
+      const it = num($("#q-int", b).value);
+      if (it > 0) state.operations.push({ id: uid(), date: today(), type: "interets", amount: it, label: "Participation aux bénéfices" });
+      snapshot(); closeSheet(); commit("Valeurs mises à jour");
+    };
+  });
+}
+function sheetSupport(id) {
+  const s = state.supports.find(x => x.id === id) || { id: uid(), name: "", isin: "", type: "uc", units: "", nav: "", pru: "", amount: "" };
+  const isNew = !state.supports.includes(s);
+  openSheet(isNew ? "Nouveau support" : "Support", `
+    ${field("s-name", "Nom du support", s.name, 'autocomplete="off"')}
+    ${field("s-isin", "Code ISIN", s.isin, 'autocomplete="off" autocapitalize="characters"')}
+    <div class="field"><label for="s-type">Type</label><select id="s-type">${Object.entries(TYPES).map(([k, l]) => `<option value="${k}" ${s.type === k ? "selected" : ""}>${l}</option>`).join("")}</select></div>
+    <div id="s-uc" class="grid2">${field("s-units", "Nombre de parts", s.units, 'inputmode="decimal"')}${field("s-nav", "Valeur liquidative (€)", s.nav, 'inputmode="decimal"')}${field("s-pru", "Prix de revient (€)", s.pru, 'inputmode="decimal"')}</div>
+    <div id="s-amt">${field("s-amount", "Montant actuel (€)", s.amount, 'inputmode="decimal"')}</div>
+    <button class="btn primary" id="s-save">${isNew ? "Ajouter" : "Enregistrer"}</button>
+    ${isNew ? "" : `<button class="btn danger" id="s-del">Supprimer ce support</button>`}`, b => {
+    const sync = () => { const uc = $("#s-type", b).value === "uc"; $("#s-uc", b).hidden = !uc; $("#s-amt", b).hidden = uc; };
+    $("#s-type", b).onchange = sync; sync();
+    $("#s-save", b).onclick = () => {
+      const name = $("#s-name", b).value.trim(); if (!name) { $("#s-name", b).focus(); return toast("Donnez un nom au support"); }
+      Object.assign(s, { name, isin: $("#s-isin", b).value.trim(), type: $("#s-type", b).value, units: num($("#s-units", b).value), nav: num($("#s-nav", b).value), pru: num($("#s-pru", b).value), amount: num($("#s-amount", b).value) });
+      if (s.type !== "uc") { s.units = 0; s.nav = 0; }
+      if (isNew) state.supports.push(s);
+      closeSheet(); commit(isNew ? "Support ajouté" : "Support enregistré");
+    };
+    const del = $("#s-del", b); if (del) armed(del, () => { state.supports = state.supports.filter(x => x !== s); closeSheet(); commit("Support supprimé"); });
+  });
+}
+function sheetOp(id) {
+  const o = state.operations.find(x => x.id === id) || { id: uid(), date: today(), type: "versement", amount: "", label: "" };
+  const isNew = !state.operations.includes(o);
+  openSheet(isNew ? "Nouvelle opération" : "Opération", `
+    <div class="grid2"><div class="field"><label for="o-date">Date</label><input id="o-date" type="date" value="${esc(o.date)}"></div>
+    <div class="field"><label for="o-type">Type</label><select id="o-type">${Object.entries(OPS).map(([k, t]) => `<option value="${k}" ${o.type === k ? "selected" : ""}>${t.label}</option>`).join("")}</select></div></div>
+    ${field("o-amount", "Montant (€)", o.amount, 'inputmode="decimal"')}
+    ${field("o-label", "Libellé", o.label, 'placeholder="ex. Versement programmé"')}
+    <p class="small muted" style="margin:0">Seuls les versements et les rachats modifient les versements nets. Les arbitrages sont informatifs.</p>
+    <button class="btn primary" id="o-save">${isNew ? "Ajouter" : "Enregistrer"}</button>
+    ${isNew ? "" : `<button class="btn danger" id="o-del">Supprimer l'opération</button>`}`, b => {
+    $("#o-save", b).onclick = () => {
+      const amount = num($("#o-amount", b).value); if (!amount) return toast("Indiquez un montant");
+      Object.assign(o, { date: $("#o-date", b).value || today(), type: $("#o-type", b).value, amount, label: $("#o-label", b).value.trim() });
+      if (isNew) state.operations.push(o);
+      closeSheet(); commit(isNew ? "Opération ajoutée" : "Opération enregistrée");
+    };
+    const del = $("#o-del", b); if (del) armed(del, () => { state.operations = state.operations.filter(x => x !== o); closeSheet(); commit("Opération supprimée"); });
+  });
+}
+function sheetContract() {
+  const c = state.contract;
+  const f = [["name", "Nom du contrat"], ["number", "Numéro de contrat"], ["holder", "Souscripteur"], ["insurer", "Assureur"], ["mode", "Mode de gestion"], ["feesEntry", "Frais sur versement"], ["feesUC", "Frais de gestion UC"], ["feesEuro", "Frais de gestion fonds euros"], ["beneficiary", "Clause bénéficiaire"]];
+  openSheet("Caractéristiques", `${f.map(([k, l]) => field("c-" + k, l, c[k])).join("")}
+    <div class="field"><label for="c-openDate">Date d'effet</label><input id="c-openDate" type="date" value="${esc(c.openDate)}"></div>
+    <button class="btn primary" id="c-save">Enregistrer</button>`, b => {
+    $("#c-save", b).onclick = () => { f.forEach(([k]) => c[k] = $("#c-" + k, b).value.trim()); c.openDate = $("#c-openDate", b).value || c.openDate; closeSheet(); commit("Contrat enregistré"); };
+  });
+}
+function sheetSnap() {
+  openSheet("Valorisation passée", `<p class="small muted" style="margin:0">Ajoutez des points d'historique depuis vos relevés annuels pour compléter le graphique.</p>
+    <div class="grid2"><div class="field"><label for="h-date">Date</label><input id="h-date" type="date" value="${today()}"></div>${field("h-val", "Valorisation (€)", "", 'inputmode="decimal"')}</div>
+    <button class="btn primary" id="h-save">Ajouter</button>
+    ${state.history.length ? `<div class="list">${state.history.slice().reverse().slice(0, 24).map(h => `<div class="row" style="cursor:default;grid-template-columns:1fr auto"><span class="t"><b>${fmtD(h.date)}</b></span><span class="v"><b class="num">${eur.format(num(h.value))}</b></span></div>`).join("")}</div>` : ""}`, b => {
+    $("#h-save", b).onclick = () => {
+      const d = $("#h-date", b).value, v = num($("#h-val", b).value); if (!d || !v) return toast("Date et montant requis");
+      state.history = state.history.filter(h => h.date !== d); state.history.push({ date: d, value: v }); state.history.sort((a, b2) => a.date < b2.date ? -1 : 1);
+      closeSheet(); commit("Point ajouté");
+    };
+  });
+}
+function sheetExport() {
+  const json = JSON.stringify(state, null, 1);
+  openSheet("Exporter", `<p class="small muted" style="margin:0">Copiez ce texte et gardez-le dans Notes ou Fichiers. Il permet de tout restaurer avec « Importer ».</p>
+    <div class="field"><label for="x-json">Sauvegarde</label><textarea id="x-json" readonly>${esc(json)}</textarea></div>
+    <div class="btn-row"><button class="btn primary" id="x-copy">Copier</button>${window.top === window ? '<button class="btn" id="x-dl">Télécharger</button>' : ''}</div>`, b => {
+    $("#x-copy", b).onclick = () => {
+      const ta = $("#x-json", b);
+      (navigator.clipboard ? navigator.clipboard.writeText(json) : Promise.reject()).then(() => toast("Sauvegarde copiée"), () => { ta.focus(); ta.select(); toast("Texte sélectionné, copiez-le"); });
+    };
+    if ($("#x-dl", b)) $("#x-dl", b).onclick = () => {
+      try { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([json], { type: "application/json" })); a.download = `spirit2-${today()}.json`; document.body.appendChild(a); a.click(); a.remove(); }
+      catch (e) { toast("Téléchargement indisponible ici, utilisez Copier"); }
+    };
+  });
+}
+function sheetImport() {
+  openSheet("Importer", `<p class="small muted" style="margin:0">Collez une sauvegarde exportée depuis cette application, ou choisissez le fichier .json. Les données actuelles seront remplacées.</p>
+    <div class="field"><label for="i-file">Fichier</label><input id="i-file" type="file" accept="application/json,.json"></div>
+    <div class="field"><label for="i-json">Ou collez le texte</label><textarea id="i-json" placeholder='{"contract": …}'></textarea></div>
+    <button class="btn primary" id="i-go">Importer</button>`, b => {
+    $("#i-file", b).onchange = e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { $("#i-json", b).value = r.result; }; r.readAsText(f); };
+    $("#i-go", b).onclick = () => {
+      try {
+        const d = JSON.parse($("#i-json", b).value);
+        if (!d || !Array.isArray(d.supports) || !Array.isArray(d.operations)) throw 0;
+        state = { ...emptyData(), ...d, demo: false }; closeSheet(); commit("Données importées");
+      } catch (e) { toast("Ce texte n'est pas une sauvegarde valide"); }
+    };
+  });
+}
+function sheetStart() {
+  openSheet("Vos données", `<p style="margin:0">L'application démarre avec un contrat fictif. Pour passer au vôtre :</p>
+    <ol class="small" style="margin:0;padding-left:20px;display:grid;gap:6px">
+      <li>Ouvrez votre espace client Linxea dans Safari.</li>
+      <li>Renseignez les caractéristiques du contrat (onglet Contrat).</li>
+      <li>Ajoutez chaque support : nom, ISIN, nombre de parts, VL et PRU.</li>
+      <li>Ajoutez vos versements depuis l'historique des opérations.</li>
+      <li>Ensuite, une mise à jour régulière des VL suffit (bouton ↻).</li>
+    </ol>
+    <button class="btn primary" id="st-go">Effacer l'exemple et commencer</button>
+    <button class="btn" id="st-keep">Garder l'exemple pour l'instant</button>`, b => {
+    $("#st-go", b).onclick = () => { state = emptyData(); tab = "contrat"; saveTab(); closeSheet(); commit(); sheetContract(); };
+    $("#st-keep", b).onclick = closeSheet;
+  });
+}
+function saveTab() { try { localStorage.setItem(TABKEY, tab); } catch (e) {} }
+
+/* ---------- Events ---------- */
+document.addEventListener("click", e => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.dataset.tab) { tab = t.dataset.tab; saveTab(); return render(); }
+  if (t.dataset.goto) { tab = t.dataset.goto; saveTab(); return render(); }
+  if (t.dataset.period) { ui.period = t.dataset.period; return render(); }
+  if (t.dataset.alloc) { ui.allocBy = t.dataset.alloc; return render(); }
+  if (t.dataset.opf) { ui.opFilter = t.dataset.opf; return render(); }
+  if (t.dataset.support) return sheetSupport(t.dataset.support);
+  if (t.dataset.op) return sheetOp(t.dataset.op);
+  const a = t.dataset.act; if (!a) return;
+  if (a === "wipe") { if (!t.classList.contains("armed")) { t.classList.add("armed"); t.textContent = "Confirmer l'effacement"; setTimeout(() => { if (t.isConnected) { t.classList.remove("armed"); t.textContent = "Effacer toutes les données"; } }, 3500); return; } state = emptyData(); return commit("Données effacées"); }
+  if (a === "demo") { if (!t.classList.contains("armed")) { t.classList.add("armed"); t.textContent = "Confirmer"; return; } state = demoData(); save(); render(); return toast("Exemple rechargé"); }
+  ({ quick: sheetQuick, "add-support": () => sheetSupport(), "add-op": () => sheetOp(), "edit-contract": sheetContract, "add-snap": sheetSnap, export: sheetExport, import: sheetImport, start: sheetStart }[a] || (() => {}))();
+});
+document.addEventListener("input", e => {
+  if (e.target.id !== "sim") return;
+  const amt = num(e.target.value), m = metrics(), out = $("#sim-out");
+  if (!amt || m.v <= 0) { out.textContent = "Saisissez un montant pour voir la part de gains imposable."; return; }
+  const g = Math.max(0, m.pv) / m.v * Math.min(amt, m.v);
+  const age = yearsSince(state.contract.openDate).y;
+  out.innerHTML = `Sur ${eur0.format(Math.min(amt, m.v))} rachetés : <b>${eur0.format(g)}</b> de gains et ${eur0.format(Math.min(amt, m.v) - g)} de capital.` +
+    (age >= 8 ? ` ${g <= 4600 ? "Ces gains restent sous l'abattement de 4 600 € (impôt sur le revenu)." : "La part au-delà de 4 600 € est imposable."} Les prélèvements sociaux s'appliquent selon les règles en vigueur.` : " Avant 8 ans, ces gains sont imposables (prélèvement forfaitaire), en plus des prélèvements sociaux.");
+});
+$("#sheet-close").onclick = closeSheet; $("#scrim").onclick = closeSheet;
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#sheet").hidden) closeSheet(); });
+let rz; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => tab === "synthese" && drawChart(), 150); });
+
+render();
+if (state.demo) save();
+try { if ("serviceWorker" in navigator && window.top === window && location.protocol === "https:" && document.querySelector('link[rel="manifest"]')) navigator.serviceWorker.register("sw.js").catch(() => {}); } catch (e) {}
+})();
+</script>
+</body>
+</html>
