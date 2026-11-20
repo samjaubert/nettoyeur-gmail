@@ -529,7 +529,7 @@ const field = (id, label, val = "", attrs = "") => `<div class="field"><label fo
 function armed(btn, fn) { btn.addEventListener("click", () => { if (btn.classList.contains("armed")) fn(); else { btn.classList.add("armed"); btn.dataset.l = btn.textContent; btn.textContent = "Confirmer"; setTimeout(() => { btn.classList.remove("armed"); btn.textContent = btn.dataset.l; }, 3500); } }); }
 
 /* ---------- Synchronisation depuis l'espace client Linxea ---------- */
-const BOOKMARKLET = `javascript:(function(){var t=document.body.innerText;var d='SPIRIT2-LINXEA\\n'+location.href+'\\n'+t;function ok(){alert('Copié ('+t.length+' caractères). Ouvrez Spirit 2, puis Synchroniser › Coller.')}if(navigator.clipboard){navigator.clipboard.writeText(d).then(ok,function(){prompt('Copiez ce texte :',d)})}else{prompt('Copiez ce texte :',d)}})();`;
+const BOOKMARKLET = `javascript:(function(){if(!/linxea/i.test(location.hostname)){alert('Ce signet doit être lancé sur votre page Linxea. Ouvrez votre contrat sur espaceclient.linxea.com, puis touchez le signet depuis le menu Signets (icône livre).');return}var t=document.body?document.body.innerText:'';var fr=document.querySelectorAll('iframe');for(var i=0;i<fr.length;i++){try{t+='\\n'+fr[i].contentDocument.body.innerText}catch(e){}}var d='SPIRIT2-LINXEA\\n'+location.href+'\\n'+t;function ok(){alert('Copié ('+t.length+' caractères). Ouvrez Spirit 2, puis Synchroniser › Coller.')}if(navigator.clipboard){navigator.clipboard.writeText(d).then(ok,function(){prompt('Copiez ce texte :',d)})}else{prompt('Copiez ce texte :',d)}})();`;
 const MONTHS = { janv: 1, janvier: 1, fevr: 2, fevrier: 2, mars: 3, avr: 4, avril: 4, mai: 5, juin: 6, juil: 7, juillet: 7, aout: 8, sept: 9, septembre: 9, oct: 10, octobre: 10, nov: 11, novembre: 11, dec: 12, decembre: 12 };
 const deaccent = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "");
 function findDate(s) {
@@ -620,7 +620,7 @@ function sheetSync() {
     <p class="note">Linxea ne propose pas de connexion directe. Un favori Safari copie le contenu de votre espace client, et l'app en extrait supports, montants et opérations. Rien ne quitte votre iPhone.</p>
     <div class="qlist">
       <div class="row first"><span class="tile todo">1</span><span class="t"><b>Ouvrez votre contrat sur Linxea</b><span>espaceclient.linxea.com, page du contrat ou Répartition</span></span></div>
-      <div class="row"><span class="tile todo">2</span><span class="t"><b>Touchez le favori « Sync Spirit 2 »</b><span>Le texte de la page est copié</span></span></div>
+      <div class="row"><span class="tile todo">2</span><span class="t"><b>Sur cette page, touchez le signet</b><span>Icône livre › Signets › « Sync Spirit 2 »</span></span></div>
       <div class="row"><span class="tile todo">3</span><span class="t"><b>Revenez ici et touchez Coller</b><span>Répétez sur la page Opérations pour l'historique</span></span></div>
     </div>
     <div class="field"><label for="y-txt">Texte copié depuis Linxea</label><textarea id="y-txt" placeholder="Collez ici le texte copié par le favori"></textarea></div>
@@ -631,6 +631,7 @@ function sheetSync() {
         <li>Touchez « Copier le code » ci-dessous.</li>
         <li>Dans Safari, ouvrez n'importe quelle page, touchez Partager › Ajouter un signet, nommez-le « Sync Spirit 2 ».</li>
         <li>Ouvrez les signets, touchez Modifier, choisissez « Sync Spirit 2 » et remplacez son adresse par le code copié.</li>
+        <li>Pour l'utiliser : sur la page Linxea déjà ouverte, touchez l'icône livre › Signets › « Sync Spirit 2 ». Ne le lancez pas depuis un nouvel onglet vide.</li>
       </ol>
       <div class="field" style="margin-top:10px"><label for="y-bm">Code du favori</label><textarea id="y-bm" readonly style="min-height:90px">${esc(BOOKMARKLET)}</textarea></div>
       <button class="btn" id="y-copy" style="margin-top:8px;width:100%">Copier le code</button>
@@ -644,6 +645,7 @@ function sheetSync() {
       const txt = $("#y-txt", b).value, out = $("#y-out", b);
       if (txt.trim().length < 20) { out.innerHTML = ""; return; }
       const p = parseLinxea(txt), sum = p.supports.reduce((a, s) => a + value(s), 0);
+      if (/^SPIRIT2-LINXEA\s+about:/.test(txt.trim()) || txt.trim().split("\n").length < 3) { out.innerHTML = `<p class="note" style="color:var(--neg)">Le signet a été lancé sur une page vide, pas sur Linxea. Ouvrez d'abord votre contrat sur espaceclient.linxea.com dans Safari, puis touchez l'icône livre › Signets › « Sync Spirit 2 » sans changer d'onglet.</p>`; return; }
       if (!p.supports.length && !p.operations.length) { out.innerHTML = `<p class="note" style="color:var(--neg)">Aucun support ni opération reconnu dans ce texte. Vérifiez que la page du contrat était affichée quand vous avez touché le favori.</p>`; return; }
       out.innerHTML = `<section class="card"><div class="card-h"><h2>Trouvé sur Linxea</h2>${p.supports.length ? `<span class="total">${eur.format(sum)}</span>` : ""}</div>
         ${p.supports.map(s => `<div class="row"><span class="t"><b>${esc(s.name)}</b><span>${esc(s.isin || TYPES[s.type])}${s.units ? " · " + nf(3).format(s.units) + " parts" : ""}</span></span><span class="v"><b>${eur.format(value(s))}</b></span></div>`).join("")}
