@@ -274,8 +274,8 @@ let tab = (() => { try { return localStorage.getItem(TABKEY) || "synthese"; } ca
 let ui = { period: "all", allocBy: "support", opFilter: "all" };
 
 /* ---------- Calculations ---------- */
-function value(s) { return s.type === "uc" || (s.units && s.nav) ? num(s.units) * num(s.nav) : num(s.amount); }
-function cost(s) { return s.type === "uc" && s.pru ? num(s.units) * num(s.pru) : null; }
+function value(s) { return num(s.units) && num(s.nav) ? num(s.units) * num(s.nav) : num(s.amount); }
+function cost(s) { return s.type === "uc" && num(s.pru) && num(s.units) ? num(s.units) * num(s.pru) : null; }
 function total() { return state.supports.reduce((a, s) => a + value(s), 0); }
 function investedAt(ops, date) {
   return ops.reduce((a, o) => o.date <= date ? a + (o.type === "versement" ? num(o.amount) : o.type === "rachat" ? -num(o.amount) : 0) : a, 0);
@@ -316,10 +316,10 @@ const IC = {
 };
 function todos() {
   const out = [], m = metrics();
-  if (state.demo) out.push({ act: "start", title: "Données d'exemple", sub: "Remplacez-les par votre contrat", icon: IC.edit });
+  if (state.demo) out.push({ act: "sync", title: "Connecter mon contrat Linxea", sub: "Remplacez l'exemple par vos vrais chiffres", icon: IC.edit });
   if (state.supports.length) {
     const days = m.lastSnap ? Math.floor((Date.now() - parseD(m.lastSnap)) / 86400000) : null;
-    if (days == null || days >= 7) out.push({ act: "quick", title: "Mettre à jour les valeurs", sub: days == null ? "Aucune valorisation enregistrée" : `Dernière saisie il y a ${days} jours`, icon: IC.refresh });
+    if (days == null || days >= 7) out.push({ act: "sync", title: "Synchroniser avec Linxea", sub: days == null ? "Aucune valorisation enregistrée" : `Dernière saisie il y a ${days} jours`, icon: IC.refresh });
   } else if (!state.demo) out.push({ act: "add-support", title: "Ajouter vos supports", sub: "Depuis l'onglet Répartition de l'espace client", icon: IC.plus });
   return out;
 }
@@ -330,7 +330,7 @@ function render() {
   if (tab === "synthese") drawChart();
   window.scrollTo(0, 0);
 }
-const refreshBtn = () => `<button class="ctl icon" data-act="quick" aria-label="Mettre à jour les valeurs">${IC.refresh}</button>`;
+const refreshBtn = () => `<button class="ctl icon" data-act="sync" aria-label="Synchroniser avec Linxea">${IC.refresh}</button>`;
 function pageTitle(t, sub) { return `<div class="page-title"><h1>${esc(t)}</h1><span class="num">${sub}</span></div>`; }
 
 function vSynthese() {
@@ -361,7 +361,7 @@ function vSynthese() {
     <dl>
       <div class="kv"><dt>Versements nets</dt><dd>${eur.format(m.inv)}</dd></div>
       <div class="kv"><dt>Plus-value latente</dt><dd class="${m.pv >= 0 ? "pos" : "neg"}">${signed(m.pv)}</dd></div>
-      <div class="kv"><dt>Rendement annuel</dt><dd>${m.irr == null ? "—" : pct(m.irr, 2)}</dd></div>
+      <div class="kv"><dt>Rendement annuel</dt><dd>${m.irr == null || age.y < 1 ? `<span style="font-weight:400;color:var(--muted)">après 1 an</span>` : pct(m.irr, 2)}</dd></div>
       <div class="kv"><dt>Intérêts fonds euros</dt><dd>${eur.format(sumType("interets"))}</dd></div>
       <div class="kv"><dt>Ancienneté</dt><dd>${age.label}${age.y < 8 ? `<span style="display:block;font-weight:400;font-size:12px;color:var(--muted)">8 ans le ${fmtD(addYears(c.openDate, 8))}</span>` : ""}</dd></div>
     </dl>
@@ -372,7 +372,7 @@ function supportLine(x) {
   const s = x.s, val = value(s), c = cost(s), pv = c != null ? val - c : null;
   return `<button class="row" data-support="${s.id}"><span class="sq" style="background:${x.color}"></span>
     <span class="t"><b>${esc(s.name)}</b><span>${nf(1).format(x.w * 100)} % · ${s.type === "uc" ? "UC" : TYPES[s.type]}</span></span>
-    <span class="v"><b>${eur.format(val)}</b>${pv != null ? `<span class="${pv >= 0 ? "pos" : "neg"}">${pct(pv / c, 1)}</span>` : `<span style="color:var(--muted)">capital garanti</span>`}</span></button>`;
+    <span class="v"><b>${eur.format(val)}</b>${pv != null ? `<span class="${pv >= 0 ? "pos" : "neg"}">${pct(pv / c, 1)}</span>` : `<span style="color:var(--muted)">${s.type === "euro" ? "capital garanti" : s.type === "scpi" ? "immobilier" : "unité de compte"}</span>`}</span></button>`;
 }
 function allocGroups(by) {
   const v = total() || 1;
@@ -393,7 +393,7 @@ function vSupports() {
     const s = x.s, val = value(s), c = cost(s), pv = c != null ? val - c : null;
     return `<button class="row" data-support="${s.id}">
       <span class="tile" style="background:color-mix(in srgb, ${x.color} 14%, transparent);color:${x.color}">${s.type === "euro" ? "€" : s.type === "scpi" ? "IM" : "UC"}</span>
-      <span class="t"><b>${esc(s.name)}</b><span>${s.type === "uc" ? `${nf(3).format(num(s.units))} parts · VL ${eur.format(num(s.nav))}` : esc(s.isin || TYPES[s.type])}</span></span>
+      <span class="t"><b>${esc(s.name)}</b><span>${s.type === "uc" && num(s.units) ? `${nf(3).format(num(s.units))} parts · VL ${eur.format(num(s.nav))}` : esc(s.isin || TYPES[s.type])}</span></span>
       <span class="v"><b>${eur.format(val)}</b>${pv != null ? `<span class="${pv >= 0 ? "pos" : "neg"}">${signed(pv)}</span>` : `<span style="color:var(--muted)">${nf(1).format(x.w * 100)} %</span>`}</span></button>`;
   }).join("");
   return `<div class="bar-top"><div class="seg" role="group" aria-label="Regrouper par"><button data-alloc="support" aria-pressed="${by === "support"}">Par support</button><button data-alloc="classe" aria-pressed="${by === "classe"}">Par classe</button></div><span class="spacer"></span>${refreshBtn()}</div>
@@ -449,7 +449,8 @@ function vContrat() {
     <div class="field"><label for="sim">Simuler un rachat partiel (€)</label><input id="sim" inputmode="decimal" placeholder="ex. 5 000"></div>
     <p class="note muted" id="sim-out">Saisissez un montant pour voir la part de gains imposable.</p></section>
   <section class="card pad"><div class="card-h"><h2>Données</h2></div>
-    <button class="btn primary" data-act="quick">Mettre à jour les valeurs</button>
+    <button class="btn primary" data-act="sync">Synchroniser avec Linxea</button>
+    <button class="btn" data-act="quick">Saisir les valeurs à la main</button>
     <div class="btns"><button class="btn" data-act="export">Exporter</button><button class="btn" data-act="import">Importer</button></div>
     <div class="btns"><button class="btn" data-act="add-snap">Historique</button><button class="btn" data-act="demo">Recharger l'exemple</button></div>
     <button class="btn danger" data-act="wipe">Effacer toutes les données</button>
@@ -527,16 +528,143 @@ function snapshot() {
 const field = (id, label, val = "", attrs = "") => `<div class="field"><label for="${id}">${label}</label><input id="${id}" value="${esc(val)}" ${attrs}></div>`;
 function armed(btn, fn) { btn.addEventListener("click", () => { if (btn.classList.contains("armed")) fn(); else { btn.classList.add("armed"); btn.dataset.l = btn.textContent; btn.textContent = "Confirmer"; setTimeout(() => { btn.classList.remove("armed"); btn.textContent = btn.dataset.l; }, 3500); } }); }
 
+/* ---------- Synchronisation depuis l'espace client Linxea ---------- */
+const BOOKMARKLET = `javascript:(function(){var t=document.body.innerText;var d='SPIRIT2-LINXEA\\n'+location.href+'\\n'+t;function ok(){alert('Copié ('+t.length+' caractères). Ouvrez Spirit 2, puis Synchroniser › Coller.')}if(navigator.clipboard){navigator.clipboard.writeText(d).then(ok,function(){prompt('Copiez ce texte :',d)})}else{prompt('Copiez ce texte :',d)}})();`;
+const MONTHS = { janv: 1, janvier: 1, fevr: 2, fevrier: 2, mars: 3, avr: 4, avril: 4, mai: 5, juin: 6, juil: 7, juillet: 7, aout: 8, sept: 9, septembre: 9, oct: 10, octobre: 10, nov: 11, novembre: 11, dec: 12, decembre: 12 };
+const deaccent = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "");
+function findDate(s) {
+  let m = s.match(/(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})/);
+  if (m) return `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+  m = deaccent(s.toLowerCase()).match(/(\d{1,2})(?:er)?\s+([a-z]+)\.?\s+(\d{4})/);
+  if (m && MONTHS[m[2]]) return `${m[3]}-${String(MONTHS[m[2]]).padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+  return null;
+}
+function moneyIn(s) {
+  const re = /([-−+])?\s?(\d{1,3}(?:[   .]\d{3})+|\d+)(?:,(\d{1,4}))?\s?(?:€|EUR\b)/g, out = [];
+  let m; while ((m = re.exec(s))) { let v = parseFloat(m[2].replace(/[   .]/g, "") + "." + (m[3] || "0")); if (m[1] && m[1] !== "+") v = -v; out.push(v); }
+  return out;
+}
+function plainNum(s) { const m = s.match(/(\d{1,3}(?:[   ]\d{3})+|\d+)(?:,(\d+))?/); return m ? parseFloat(m[1].replace(/[   ]/g, "") + "." + (m[2] || "0")) : null; }
+function parseLinxea(raw) {
+  const lines = raw.replace(/\r/g, "").split("\n").map(l => l.replace(/[  \t]+/g, " ").trim()).filter(Boolean);
+  const ISIN = /\b([A-Z]{2}[A-Z0-9]{9}[0-9])\b/, EURO = /fonds\s+euros?\b|fonds\s+euro\s+nouvelle/i;
+  const isHead = l => ISIN.test(l) || (EURO.test(l) && l.length < 70);
+  const res = { supports: [], operations: [], contract: {}, total: null };
+  const seen = new Set();
+  lines.forEach((l, i) => {
+    if (!isHead(l)) return;
+    const isin = (l.match(ISIN) || [])[1];
+    const key = isin || "EURO"; if (seen.has(key)) return;
+    let name = l.replace(isin || "", "").replace(/^[\s\-–|:·]+|[\s\-–|:·(]+$/g, "").trim();
+    if (!/[a-z]{3}/i.test(name) || moneyIn(name).length) {
+      name = "";
+      for (let j = i - 1; j >= Math.max(0, i - 3); j--) if (/[a-z]{3}/i.test(lines[j]) && !moneyIn(lines[j]).length && !/^(isin|code)/i.test(lines[j])) { name = lines[j]; break; }
+    }
+    const win = [];
+    for (let j = i; j < Math.min(lines.length, i + 10); j++) { if (j > i && isHead(lines[j])) break; win.push(lines[j]); }
+    let value = null, nav = null, pru = null, units = null;
+    const used = new Set();
+    const grab = (k, w, fn) => { const own = fn(w); if (own != null) return own; const nx = win[k + 1] || ""; const v = fn(nx); if (v != null) used.add(k + 1); return v; };
+    win.forEach((w, k) => {
+      if (used.has(k)) return;
+      if (/\b(VL|valeur liquidative|cours|derni[eè]re valeur)\b/i.test(w)) nav ??= grab(k, w, x => moneyIn(x)[0] ?? null);
+      else if (/\b(PRU|prix de revient|prix moyen)\b/i.test(w)) pru ??= grab(k, w, x => moneyIn(x)[0] ?? null);
+      else if (/parts?\b/i.test(w) && !moneyIn(w).length) units ??= grab(k, w, x => /\d/.test(x) && !moneyIn(x).length ? plainNum(x.replace(/^[^\d]*/, "")) : null);
+      else if (!/(plus|moins)[- ]value|perf|gain|%|frais/i.test(w) && value == null) { const v = moneyIn(w).filter(x => x > 0)[0]; if (v != null) value = v; }
+    });
+    if (value == null && !(units && nav)) return;
+    seen.add(key);
+    const type = isin ? (/\b(SCPI|SCI|OPCI|immo)/i.test(name) ? "scpi" : "uc") : "euro";
+    res.supports.push({ id: uid(), name: name || (isin ? isin : "Fonds euros"), isin: isin || "", type, units: units || 0, nav: nav || 0, pru: pru || 0, amount: value || 0 });
+  });
+  const opSeen = new Set();
+  lines.forEach((l, i) => {
+    const date = findDate(l); if (!date) return;
+    let end = i + 1; while (end < Math.min(lines.length, i + 4) && !findDate(lines[end])) end++;
+    const own = lines.slice(i, end), prev = lines[i - 1] && !findDate(lines[i - 1]) && !moneyIn(lines[i - 1]).length ? [lines[i - 1]] : [];
+    const kind = c => /versement/i.test(c) ? "versement" : /arbitrage/i.test(c) ? "arbitrage" : /rachat|retrait/i.test(c) ? "rachat" : /int[ée]r[êe]ts|participation aux b|revalorisation/i.test(c) ? "interets" : /frais/i.test(c) ? "frais" : null;
+    const t = kind(own.join(" ")) || kind(prev.join(" "));
+    if (!t) return;
+    const ctxLines = prev.concat(own);
+    const amt = moneyIn(own.join(" · ")).map(Math.abs).find(v => v > 0); if (amt == null) return;
+    const k = `${date}|${t}|${amt}`; if (opSeen.has(k)) return; opSeen.add(k);
+    const label = (ctxLines.find(x => new RegExp(t === "interets" ? "int[ée]r|particip|revalor" : t, "i").test(x)) || OPS[t].label).slice(0, 70);
+    res.operations.push({ id: uid(), date, type: t, amount: amt, label });
+  });
+  lines.forEach((l, i) => {
+    if (!res.contract.openDate && /date d.effet|souscrit le|date d.ouverture|date de souscription/i.test(l)) res.contract.openDate = findDate(l) || findDate(lines[i + 1] || "");
+    if (!res.contract.number) { const m = l.match(/(?:contrat|adh[ée]sion|police)\s*(?:n°|no|num[ée]ro)\s*:?\s*([A-Z0-9][A-Z0-9-]{4,})/i); if (m) res.contract.number = m[1]; }
+    if (res.total == null && /(épargne|valorisation|encours|montant total|solde)/i.test(l)) res.total = moneyIn(l)[0] ?? moneyIn(lines[i + 1] || "")[0] ?? null;
+    if (!res.contract.mode && /gestion (libre|pilot[ée]e|sous mandat|profil[ée]e)/i.test(l)) res.contract.mode = (l.match(/gestion (libre|pilot[ée]e|sous mandat|profil[ée]e)/i) || [])[0];
+  });
+  if (!res.contract.openDate) delete res.contract.openDate;
+  return res;
+}
+function applyLinxea(p) {
+  if (state.demo) state = emptyData();
+  if (p.supports.length) {
+    p.supports.forEach(s => { const old = state.supports.find(o => (s.isin && o.isin === s.isin) || (!s.isin && o.type === "euro")); if (old && !s.pru) s.pru = old.pru; });
+    state.supports = p.supports;
+  }
+  const key = o => `${o.date}|${o.type}|${num(o.amount)}`, have = new Set(state.operations.map(key));
+  p.operations.forEach(o => { if (!have.has(key(o))) state.operations.push(o); });
+  Object.entries(p.contract).forEach(([k, v]) => { if (v) state.contract[k] = v; });
+  if (!state.contract.openDate || (p.operations.length && state.contract.openDate > p.operations.map(o => o.date).sort()[0])) {
+    const first = state.operations.map(o => o.date).sort()[0]; if (first) state.contract.openDate = first;
+  }
+  state.lastSync = new Date().toISOString();
+  if (p.supports.length) snapshot();
+}
+function sheetSync() {
+  openSheet("Synchroniser avec Linxea", `
+    <p class="note">Linxea ne propose pas de connexion directe. Un favori Safari copie le contenu de votre espace client, et l'app en extrait supports, montants et opérations. Rien ne quitte votre iPhone.</p>
+    <div class="qlist">
+      <div class="row first"><span class="tile todo">1</span><span class="t"><b>Ouvrez votre contrat sur Linxea</b><span>espaceclient.linxea.com, page du contrat ou Répartition</span></span></div>
+      <div class="row"><span class="tile todo">2</span><span class="t"><b>Touchez le favori « Sync Spirit 2 »</b><span>Le texte de la page est copié</span></span></div>
+      <div class="row"><span class="tile todo">3</span><span class="t"><b>Revenez ici et touchez Coller</b><span>Répétez sur la page Opérations pour l'historique</span></span></div>
+    </div>
+    <div class="field"><label for="y-txt">Texte copié depuis Linxea</label><textarea id="y-txt" placeholder="Collez ici le texte copié par le favori"></textarea></div>
+    <div class="btns"><button class="btn" id="y-paste">Coller</button><button class="btn primary" id="y-go">Analyser</button></div>
+    <div id="y-out"></div>
+    <details><summary class="link" style="list-style:none;display:flex;align-items:center;min-height:44px">Installer le favori « Sync Spirit 2 »</summary>
+      <ol class="note" style="margin:8px 0 0;padding-left:20px;display:grid;gap:6px">
+        <li>Touchez « Copier le code » ci-dessous.</li>
+        <li>Dans Safari, ouvrez n'importe quelle page, touchez Partager › Ajouter un signet, nommez-le « Sync Spirit 2 ».</li>
+        <li>Ouvrez les signets, touchez Modifier, choisissez « Sync Spirit 2 » et remplacez son adresse par le code copié.</li>
+      </ol>
+      <div class="field" style="margin-top:10px"><label for="y-bm">Code du favori</label><textarea id="y-bm" readonly style="min-height:90px">${esc(BOOKMARKLET)}</textarea></div>
+      <button class="btn" id="y-copy" style="margin-top:8px;width:100%">Copier le code</button>
+    </details>
+    <button class="link" data-act="quick" style="align-self:center">Saisir les valeurs à la main</button>`, b => {
+    $("#y-copy", b).onclick = () => (navigator.clipboard ? navigator.clipboard.writeText(BOOKMARKLET) : Promise.reject()).then(() => toast("Code copié"), () => { const t = $("#y-bm", b); t.focus(); t.select(); toast("Code sélectionné, copiez-le"); });
+    $("#y-paste", b).onclick = () => (navigator.clipboard && navigator.clipboard.readText ? navigator.clipboard.readText() : Promise.reject()).then(t => { $("#y-txt", b).value = t; analyse(); }, () => { $("#y-txt", b).focus(); toast("Appuyez longuement dans le champ puis Coller"); });
+    $("#y-go", b).onclick = () => analyse();
+    $("#y-txt", b).addEventListener("paste", () => setTimeout(analyse, 50));
+    function analyse() {
+      const txt = $("#y-txt", b).value, out = $("#y-out", b);
+      if (txt.trim().length < 20) { out.innerHTML = ""; return; }
+      const p = parseLinxea(txt), sum = p.supports.reduce((a, s) => a + value(s), 0);
+      if (!p.supports.length && !p.operations.length) { out.innerHTML = `<p class="note" style="color:var(--neg)">Aucun support ni opération reconnu dans ce texte. Vérifiez que la page du contrat était affichée quand vous avez touché le favori.</p>`; return; }
+      out.innerHTML = `<section class="card"><div class="card-h"><h2>Trouvé sur Linxea</h2>${p.supports.length ? `<span class="total">${eur.format(sum)}</span>` : ""}</div>
+        ${p.supports.map(s => `<div class="row"><span class="t"><b>${esc(s.name)}</b><span>${esc(s.isin || TYPES[s.type])}${s.units ? " · " + nf(3).format(s.units) + " parts" : ""}</span></span><span class="v"><b>${eur.format(value(s))}</b></span></div>`).join("")}
+        ${p.operations.length ? `<div class="row"><span class="t"><b>${p.operations.length} opération${p.operations.length > 1 ? "s" : ""}</b><span>${esc(p.operations.slice(0, 3).map(o => OPS[o.type].label + " " + fmtD(o.date)).join(", "))}${p.operations.length > 3 ? "…" : ""}</span></span></div>` : ""}
+        ${p.total != null && p.supports.length && Math.abs(p.total - sum) > 1 ? `<p class="note" style="padding-bottom:12px">Linxea affiche ${eur.format(p.total)} au total. Vérifiez les supports après l'import.</p>` : ""}
+      </section><button class="btn primary" id="y-apply" style="width:100%;margin-top:10px">${state.demo ? "Remplacer l'exemple par mon contrat" : "Mettre à jour mon contrat"}</button>`;
+      $("#y-apply", b).onclick = () => { applyLinxea(p); closeSheet(); commit("Contrat synchronisé"); };
+    }
+  });
+}
+
 function sheetQuick() {
   if (!state.supports.length) return sheetSupport();
   openSheet("Mettre à jour les valeurs", `
     <p class="note muted">Recopiez les valeurs affichées dans votre espace client Linxea. La valorisation du jour est ajoutée à l'historique.</p>
-    <div class="qlist">${state.supports.map(s => `<div class="qrow"><div><b>${esc(s.name)}</b><span>${s.type === "uc" ? `VL actuelle · ${nf(3).format(num(s.units))} parts` : "Montant (€)"}</span></div>
-      <input id="q-${s.id}" inputmode="decimal" value="${esc(String(s.type === "uc" ? num(s.nav) : num(s.amount)).replace(".", ","))}" aria-label="${esc(s.name)}"></div>`).join("")}</div>
+    <div class="qlist">${state.supports.map(s => `<div class="qrow"><div><b>${esc(s.name)}</b><span>${s.type === "uc" && num(s.units) ? `VL actuelle · ${nf(3).format(num(s.units))} parts` : "Montant (€)"}</span></div>
+      <input id="q-${s.id}" inputmode="decimal" value="${esc(String(s.type === "uc" && num(s.units) ? num(s.nav) : num(s.amount)).replace(".", ","))}" aria-label="${esc(s.name)}"></div>`).join("")}</div>
     <div class="field"><label for="q-int">Intérêts fonds euros crédités (optionnel)</label><input id="q-int" inputmode="decimal" placeholder="0"></div>
     <button class="btn primary" id="q-save">Enregistrer</button>`, b => {
     $("#q-save", b).onclick = () => {
-      state.supports.forEach(s => { const v = num($("#q-" + s.id, b).value); if (s.type === "uc") s.nav = v; else s.amount = v; });
+      state.supports.forEach(s => { const v = num($("#q-" + s.id, b).value); if (s.type === "uc" && num(s.units)) s.nav = v; else s.amount = v; });
       const it = num($("#q-int", b).value);
       if (it > 0) state.operations.push({ id: uid(), date: today(), type: "interets", amount: it, label: "Participation aux bénéfices" });
       snapshot(); closeSheet(); commit("Valeurs mises à jour");
@@ -667,7 +795,7 @@ document.addEventListener("click", e => {
   const a = t.dataset.act; if (!a) return;
   if (a === "wipe") { if (!t.classList.contains("armed")) { t.classList.add("armed"); t.textContent = "Confirmer l'effacement"; setTimeout(() => { if (t.isConnected) { t.classList.remove("armed"); t.textContent = "Effacer toutes les données"; } }, 3500); return; } state = emptyData(); return commit("Données effacées"); }
   if (a === "demo") { if (!t.classList.contains("armed")) { t.classList.add("armed"); t.textContent = "Confirmer"; return; } state = demoData(); save(); render(); return toast("Exemple rechargé"); }
-  ({ quick: sheetQuick, "add-support": () => sheetSupport(), "add-op": () => sheetOp(), "edit-contract": sheetContract, "add-snap": sheetSnap, export: sheetExport, import: sheetImport, start: sheetStart }[a] || (() => {}))();
+  ({ quick: sheetQuick, "add-support": () => sheetSupport(), "add-op": () => sheetOp(), "edit-contract": sheetContract, "add-snap": sheetSnap, export: sheetExport, import: sheetImport, start: sheetStart, sync: sheetSync }[a] || (() => {}))();
 });
 document.addEventListener("input", e => {
   if (e.target.id !== "sim") return;
