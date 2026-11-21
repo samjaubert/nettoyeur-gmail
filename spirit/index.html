@@ -620,6 +620,18 @@ function applyLinxea(p) {
 const URLKEY = "spirit2.syncurl";
 const getSyncUrl = () => { try { return localStorage.getItem(URLKEY) || ""; } catch (e) { return ""; } };
 const setSyncUrl = u => { try { u ? localStorage.setItem(URLKEY, u) : localStorage.removeItem(URLKEY); } catch (e) {} };
+const PASSKEY = "spirit2.syncpass";
+const getPass = () => { try { return localStorage.getItem(PASSKEY) || ""; } catch (e) { return ""; } };
+const setPass = v => { try { v ? localStorage.setItem(PASSKEY, v) : localStorage.removeItem(PASSKEY); } catch (e) {} };
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+// Fichier chiffré : {"v":1,"kdf":"PBKDF2-SHA256","iter":N,"salt":b64,"iv":b64,"data":b64} (AES-256-GCM)
+async function decryptPayload(o, pass) {
+  if (!pass) throw new Error("pass");
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveKey"]);
+  const key = await crypto.subtle.deriveKey({ name: "PBKDF2", hash: "SHA-256", salt: b64(o.salt), iterations: o.iter || 200000 }, base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+  const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(o.iv) }, key, b64(o.data));
+  return JSON.parse(new TextDecoder().decode(plain));
+}
 function applyRemote(d) {
   if (!d || !Array.isArray(d.supports)) throw new Error("format");
   const hist = {};
@@ -635,24 +647,27 @@ async function remoteSync(silent) {
   try {
     const r = await fetch(url + (url.includes("?") ? "&" : "?") + "t=" + Date.now(), { cache: "no-store" });
     if (!r.ok) throw new Error("http " + r.status);
-    applyRemote(await r.json()); save(); render(); if (!silent) toast("Contrat à jour");
+    let d = await r.json();
+    if (d && d.data && d.iv) { try { d = await decryptPayload(d, getPass()); } catch (e) { if (!silent) toast(getPass() ? "Phrase secrète incorrecte" : "Ajoutez la phrase secrète"); return false; } }
+    applyRemote(d); save(); render(); if (!silent) toast("Contrat à jour");
     return true;
   } catch (e) { if (!silent) toast("Synchronisation impossible, vérifiez le lien"); return false; }
   finally { syncing = false; }
 }
 function sheetAuto() {
   openSheet("Synchronisation automatique", `
-    <p class="note">Collez le lien privé fourni par votre app « Suivi finances » sur PC. Spirit 2 recharge vos chiffres à chaque ouverture : un nouveau versement apparaît dès que l'app PC a récupéré votre contrat Linxea.</p>
+    <p class="note">Collez le lien et la phrase secrète fournis par votre app « Suivi finances » sur PC. Vos chiffres sont chiffrés : sans la phrase secrète, le lien ne révèle rien. Spirit 2 recharge vos chiffres à chaque ouverture : un nouveau versement apparaît dès que l'app PC a récupéré votre contrat Linxea.</p>
     <div class="field"><label for="a-url">Lien de synchronisation</label><input id="a-url" type="url" inputmode="url" autocapitalize="off" autocomplete="off" placeholder="https://gist.githubusercontent.com/…" value="${esc(getSyncUrl())}"></div>
+    <div class="field"><label for="a-pass">Phrase secrète de déchiffrement</label><input id="a-pass" type="password" autocomplete="off" placeholder="Fournie par l'app PC" value="${esc(getPass())}"></div>
     <button class="btn primary" id="a-save">Enregistrer et synchroniser</button>
     ${getSyncUrl() ? `<button class="btn danger" id="a-off">Désactiver la synchronisation automatique</button>` : ""}
     <p class="note muted">${state.lastSync ? "Dernière synchronisation : " + new Date(state.lastSync).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" }) : "Aucune synchronisation pour l'instant."}</p>`, b => {
     $("#a-save", b).onclick = async () => {
       const u = $("#a-url", b).value.trim();
       if (!/^https:\/\//.test(u)) return toast("Le lien doit commencer par https://");
-      setSyncUrl(u); const ok = await remoteSync(false); if (ok) closeSheet();
+      setSyncUrl(u); setPass($("#a-pass", b).value); const ok = await remoteSync(false); if (ok) closeSheet();
     };
-    const off = $("#a-off", b); if (off) armed(off, () => { setSyncUrl(""); closeSheet(); toast("Synchronisation automatique désactivée"); });
+    const off = $("#a-off", b); if (off) armed(off, () => { setSyncUrl(""); setPass(""); closeSheet(); toast("Synchronisation automatique désactivée"); });
   });
 }
 
