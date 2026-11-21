@@ -1,5 +1,5 @@
 // Mise en cache pour un fonctionnement hors ligne.
-const CACHE = "spirit2-v3";
+const CACHE = "spirit2-v4";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener("activate", e => {
