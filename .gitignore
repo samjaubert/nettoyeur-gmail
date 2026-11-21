@@ -1,0 +1,4 @@
+# Données personnelles de la synchro Spirit 2 : jamais dans ce dépôt public
+config.json
+spirit/pc/*.json
+__pycache__/
