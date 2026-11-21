@@ -316,7 +316,7 @@ const IC = {
 };
 function todos() {
   const out = [], m = metrics();
-  if (state.demo) out.push({ act: "sync", title: "Connecter mon contrat Linxea", sub: "Remplacez l'exemple par vos vrais chiffres", icon: IC.edit });
+  if (state.demo) out.push({ act: "auto", title: "Connecter mon contrat Linxea", sub: "Remplacez l'exemple par vos vrais chiffres", icon: IC.edit });
   if (state.supports.length) {
     const days = m.lastSnap ? Math.floor((Date.now() - parseD(m.lastSnap)) / 86400000) : null;
     if (days == null || days >= 7) out.push({ act: "sync", title: "Synchroniser avec Linxea", sub: days == null ? "Aucune valorisation enregistrée" : `Dernière saisie il y a ${days} jours`, icon: IC.refresh });
@@ -343,7 +343,7 @@ function vSynthese() {
       ${refreshBtn()}
     </div>
   <section class="hero">
-    <h2>Valorisation au ${fmtD(today())}</h2>
+    <h2>${state.lastSync ? "Synchronisé le " + new Date(state.lastSync).toLocaleString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "Valorisation au " + fmtD(today())}</h2>
     <div class="amount">${eur.format(v)}</div>
     <div class="sub"><span class="pill ${m.pv >= 0 ? "pos" : "neg"}">${signed(m.pv)}</span>soit ${pct(m.perf)} sur vos versements</div>
     <div class="chart" id="chart"></div>
@@ -449,7 +449,8 @@ function vContrat() {
     <div class="field"><label for="sim">Simuler un rachat partiel (€)</label><input id="sim" inputmode="decimal" placeholder="ex. 5 000"></div>
     <p class="note muted" id="sim-out">Saisissez un montant pour voir la part de gains imposable.</p></section>
   <section class="card pad"><div class="card-h"><h2>Données</h2></div>
-    <button class="btn primary" data-act="sync">Synchroniser avec Linxea</button>
+    <button class="btn primary" data-act="auto">Synchronisation automatique</button>
+    <button class="btn" data-act="sync">Synchroniser avec Linxea</button>
     <button class="btn" data-act="quick">Saisir les valeurs à la main</button>
     <div class="btns"><button class="btn" data-act="export">Exporter</button><button class="btn" data-act="import">Importer</button></div>
     <div class="btns"><button class="btn" data-act="add-snap">Historique</button><button class="btn" data-act="demo">Recharger l'exemple</button></div>
@@ -615,6 +616,46 @@ function applyLinxea(p) {
   state.lastSync = new Date().toISOString();
   if (p.supports.length) snapshot();
 }
+/* ---------- Synchronisation automatique (lien publié par l'app PC) ---------- */
+const URLKEY = "spirit2.syncurl";
+const getSyncUrl = () => { try { return localStorage.getItem(URLKEY) || ""; } catch (e) { return ""; } };
+const setSyncUrl = u => { try { u ? localStorage.setItem(URLKEY, u) : localStorage.removeItem(URLKEY); } catch (e) {} };
+function applyRemote(d) {
+  if (!d || !Array.isArray(d.supports)) throw new Error("format");
+  const hist = {};
+  (state.demo ? [] : state.history).concat(d.history || []).forEach(h => { if (h && h.date) hist[h.date] = { date: h.date, value: num(h.value) }; });
+  state = { ...emptyData(), ...d, contract: { ...emptyData().contract, ...(d.contract || {}) }, operations: d.operations || [], history: Object.values(hist).sort((a, b) => a.date < b.date ? -1 : 1), demo: false };
+  state.lastSync = new Date().toISOString();
+  snapshot();
+}
+let syncing = false;
+async function remoteSync(silent) {
+  const url = getSyncUrl(); if (!url || syncing) return false;
+  syncing = true;
+  try {
+    const r = await fetch(url + (url.includes("?") ? "&" : "?") + "t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error("http " + r.status);
+    applyRemote(await r.json()); save(); render(); if (!silent) toast("Contrat à jour");
+    return true;
+  } catch (e) { if (!silent) toast("Synchronisation impossible, vérifiez le lien"); return false; }
+  finally { syncing = false; }
+}
+function sheetAuto() {
+  openSheet("Synchronisation automatique", `
+    <p class="note">Collez le lien privé fourni par votre app « Suivi finances » sur PC. Spirit 2 recharge vos chiffres à chaque ouverture : un nouveau versement apparaît dès que l'app PC a récupéré votre contrat Linxea.</p>
+    <div class="field"><label for="a-url">Lien de synchronisation</label><input id="a-url" type="url" inputmode="url" autocapitalize="off" autocomplete="off" placeholder="https://gist.githubusercontent.com/…" value="${esc(getSyncUrl())}"></div>
+    <button class="btn primary" id="a-save">Enregistrer et synchroniser</button>
+    ${getSyncUrl() ? `<button class="btn danger" id="a-off">Désactiver la synchronisation automatique</button>` : ""}
+    <p class="note muted">${state.lastSync ? "Dernière synchronisation : " + new Date(state.lastSync).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" }) : "Aucune synchronisation pour l'instant."}</p>`, b => {
+    $("#a-save", b).onclick = async () => {
+      const u = $("#a-url", b).value.trim();
+      if (!/^https:\/\//.test(u)) return toast("Le lien doit commencer par https://");
+      setSyncUrl(u); const ok = await remoteSync(false); if (ok) closeSheet();
+    };
+    const off = $("#a-off", b); if (off) armed(off, () => { setSyncUrl(""); closeSheet(); toast("Synchronisation automatique désactivée"); });
+  });
+}
+
 function sheetSync() {
   openSheet("Synchroniser avec Linxea", `
     <p class="note">Linxea ne propose pas de connexion directe. Un favori Safari copie le contenu de votre espace client, et l'app en extrait supports, montants et opérations. Rien ne quitte votre iPhone.</p>
@@ -797,7 +838,7 @@ document.addEventListener("click", e => {
   const a = t.dataset.act; if (!a) return;
   if (a === "wipe") { if (!t.classList.contains("armed")) { t.classList.add("armed"); t.textContent = "Confirmer l'effacement"; setTimeout(() => { if (t.isConnected) { t.classList.remove("armed"); t.textContent = "Effacer toutes les données"; } }, 3500); return; } state = emptyData(); return commit("Données effacées"); }
   if (a === "demo") { if (!t.classList.contains("armed")) { t.classList.add("armed"); t.textContent = "Confirmer"; return; } state = demoData(); save(); render(); return toast("Exemple rechargé"); }
-  ({ quick: sheetQuick, "add-support": () => sheetSupport(), "add-op": () => sheetOp(), "edit-contract": sheetContract, "add-snap": sheetSnap, export: sheetExport, import: sheetImport, start: sheetStart, sync: sheetSync }[a] || (() => {}))();
+  ({ quick: sheetQuick, "add-support": () => sheetSupport(), "add-op": () => sheetOp(), "edit-contract": sheetContract, "add-snap": sheetSnap, export: sheetExport, import: sheetImport, start: sheetStart, sync: () => getSyncUrl() ? remoteSync(false) : sheetSync(), auto: sheetAuto }[a] || (() => {}))();
 });
 document.addEventListener("input", e => {
   if (e.target.id !== "sim") return;
@@ -813,6 +854,8 @@ document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#sheet
 let rz; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => tab === "synthese" && drawChart(), 150); });
 
 render();
+remoteSync(true);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") remoteSync(true); });
 if (state.demo) save();
 try { if ("serviceWorker" in navigator && window.top === window && location.protocol === "https:" && document.querySelector('link[rel="manifest"]')) navigator.serviceWorker.register("sw.js").catch(() => {}); } catch (e) {}
 })();
